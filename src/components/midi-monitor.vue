@@ -63,7 +63,7 @@ controller.addEventListener('action', ({ action, args: [data] }) => {
 
 <style lang="sass">
 .midi-monitor
-    background: #88888844
+    background: #444444cc
     min-height: 50em
     padding: 0 1rem 1rem
     ol

@@ -1,6 +1,6 @@
 <template>
     <main>
-        <div>
+        <div class="wrapper">
             <h1>Faderfox UC4 Configurator</h1>
             <notifier ref="notifications" />
             <div :class="['device', waitingForMode, { waitingForMode }]">
@@ -126,6 +126,7 @@
                 v-for="(line, idx) of activeInstructions"
                 :key="idx"
                 v-html="line.content"
+                :class="line.anchor"
                 :style="line.style"
             />
         </ol>
@@ -232,7 +233,7 @@ const INSTRUCTIONS = {
         },
         {
             attachTo: '.encoder-knob:nth-child(4)',
-            content: 'Hold encoder <kbd>#4</kbd>.<br/><br/>(Display shows <kbd>Sndc</kbd>)<br/><br/>Keep holding until the lines disappear.',
+            content: 'Hold encoder <kbd>#4</kbd>.<br/><br/>[Display shows <kbd>Sndc</kbd>]<br/><br/>Keep holding until the lines disappear.',
         }
     ],
     send: [
@@ -246,7 +247,7 @@ const INSTRUCTIONS = {
         },
         {
             attachTo: '.encoder-knob:nth-child(7)',
-            content: 'Hold encoder <kbd>#7</kbd>.<br/><br/>(Display shows <kbd>rec</kbd>)<br/><br/>Keep holding until <kbd>rc00</kbd> is visible.',
+            content: 'Hold encoder <kbd>#7</kbd>.<br/><br/>[Display shows <kbd>rec</kbd>]<br/><br/>Keep holding until <kbd>rc00</kbd> is visible.',
         }
     ],
 }
@@ -256,7 +257,13 @@ function enterMode(mode) {
     waitingForMode.value = mode
     activeInstructions.value = INSTRUCTIONS[mode].map(line => {
         const { x, y, width } = document.querySelector(line.attachTo).getBoundingClientRect()
-        line.style = `transform: translate(${x + width}px, ${y}px)`
+        const pos = [x + width, y + window.scrollY]
+        line.anchor = 'left-anchor'
+        if (pos[0] + 300 > window.innerWidth) {
+            pos[0] = -(window.innerWidth - x)
+            line.anchor = 'right-anchor'
+        }
+        line.style = `transform: translate(${pos[0]}px, ${pos[1]}px)`
         return line
     })
 }
@@ -271,7 +278,7 @@ function send() {
     const device = controllers.attachedDevices[0]
     device.load(groups.value)
     cancelMode()
-    notifications.notify({ text: 'Configuration Sent! Press SHIFT to return to normal operation.' })
+    notifications.value.notify({ text: 'Configuration Sent! Press SHIFT to return to normal operation.' })
 }
 
 controllers.addEventListener('action', recv)
@@ -300,6 +307,7 @@ main
         top: 0
         overflow-x: hidden
         font-size: .8em
+        z-index: 30
         &.active
             h3:after
                 transform: rotate(90deg)
@@ -346,7 +354,6 @@ main
 
     .device
         background: #333
-        width: 35rem
         padding: .5rem
         border-radius: .5rem
         position: relative
@@ -363,7 +370,7 @@ main
                     opacity: 1
 
         input
-            width: 3.5em
+            max-width: 2.5em
             &[type=number]
                 &::-webkit-inner-spin-button, &::-webkit-outer-spin-button
                     -webkit-appearance: none
@@ -396,7 +403,8 @@ main
         justify-content: space-between
         position: relative
         .encoder-knob
-            flex-basis: 18%
+            flex-basis: 17%
+            flex-grow: 1
 
     .faders
         display: flex
@@ -428,7 +436,6 @@ main
         overflow: hidden
         select, input
             padding: .3em .5em
-            width: 4em
             color: inherit
             background: inherit
             border: none
@@ -438,6 +445,8 @@ main
             &:hover
                 background-color: inherit
                 color: inherit
+        input
+            max-width: 6em
         select
             padding-right: 0
             width: 6em
@@ -453,7 +462,7 @@ main
             font-family: inherit
             font-weight: bold
         li
-            position: fixed
+            position: absolute
             top: -1em
             left: 2em
             padding: .5em 1em
@@ -484,6 +493,10 @@ main
                         display: flex
                         justify-content: center
                         align-items: center
+            &.right-anchor
+                left: auto
+                right: 0
+                top: -4em
 
         @keyframes appear
             from
@@ -515,6 +528,10 @@ main
             list-style: none
             gap: 1rem
             justify-content: center
+
+    .wrapper
+        width: 100%
+        max-width: 35rem
 
     @keyframes gleam
         0%

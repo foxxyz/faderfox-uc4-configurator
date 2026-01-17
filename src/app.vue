@@ -35,6 +35,7 @@ body
     font-weight: 200
     font-family: Roboto, sans-serif
     position: relative
+    padding-bottom: 2rem
 
 button
     background: linear-gradient(to bottom, #222, #444)
