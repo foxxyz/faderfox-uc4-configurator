@@ -1,0 +1,30 @@
+{
+  "name": "uc4-configurator",
+  "version": "0.8.0",
+  "description": "WebMIDI Configurator for FaderFox UC4",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint src",
+    "test": "node --test  --experimental-test-coverage --experimental-test-module-mocks"
+  },
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/foxxyz/uc4-configurator"
+  },
+  "author": "Ivo Janssen <hello@ivo.la>",
+  "license": "MIT",
+  "devDependencies": {
+    "@appliedminds/eslint-config": "^2.1.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.6.2",
+    "sass": "^1.97.2"
+  },
+  "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.3",
+    "vite": "^7.3.1",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
+  }
+}
