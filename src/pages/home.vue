@@ -232,7 +232,7 @@ const INSTRUCTIONS = {
             content: 'Press <kbd>Setup</kbd> twice until the Setup LED is on',
         },
         {
-            attachTo: '.encoder-knob:nth-child(4)',
+            attachTo: '.encoder-knob:nth-child(4 of .encoder-knob)',
             content: 'Hold encoder <kbd>#4</kbd>.<br/><br/>[Display shows <kbd>Sndc</kbd>]<br/><br/>Keep holding until the lines disappear.',
         }
     ],
@@ -246,7 +246,7 @@ const INSTRUCTIONS = {
             content: 'Press <kbd>Setup</kbd> twice until the Setup LED is on',
         },
         {
-            attachTo: '.encoder-knob:nth-child(7)',
+            attachTo: '.encoder-knob:nth-child(7 of .encoder-knob)',
             content: 'Hold encoder <kbd>#7</kbd>.<br/><br/>[Display shows <kbd>rec</kbd>]<br/><br/>Keep holding until <kbd>rc00</kbd> is visible.',
         }
     ],
@@ -369,10 +369,10 @@ main
                 opacity: .1
                 pointer-events: none
             &.load
-                .encoder-knob:nth-child(4)
+                .encoder-knob:nth-child(4 of .encoder-knob)
                     opacity: 1
             &.send
-                .encoder-knob:nth-child(7)
+                .encoder-knob:nth-child(7 of .encoder-knob)
                     opacity: 1
 
         input
