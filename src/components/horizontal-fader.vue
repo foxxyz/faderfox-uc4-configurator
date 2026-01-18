@@ -1,5 +1,5 @@
 <template>
-    <div :class="['horizontal-fader', { active }]">
+    <div :class="['horizontal-fader control', { active }]">
         <div class="bg" />
         <div class="track" />
         <channel-select
@@ -61,15 +61,6 @@ const { active } = useActiveFlash(() => props.value)
     flex-direction: column
     justify-content: center
     position: relative
-    &:hover, &.active
-        input, select
-            transition: none
-            opacity: .5
-        .handle input
-            opacity: 1
-    input, select
-        opacity: 0
-        text-align: center
     .bg
         position: absolute
         z-index: 0
@@ -103,8 +94,10 @@ const { active } = useActiveFlash(() => props.value)
             top: -2em
         &.min
             left: -2em
+            text-align: right
         &.max
             right: -5.5em
+            text-align: left
     .track
         position: relative
         z-index: 1

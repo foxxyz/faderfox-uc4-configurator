@@ -1,9 +1,10 @@
 <template>
     <div
-        :class="['push-button', { active, disabled, pressed }]"
+        :class="['push-button control', { active, disabled, pressed }]"
         :style="{ background: `radial-gradient(${color}, ${color} 60%, #111)` }"
     >
         <input
+            v-if="!disabled"
             class="cc"
             type="number"
             value="0"
@@ -48,13 +49,9 @@ const { active } = useActiveFlash(() => props.pressed)
     display: flex
     justify-content: center
     align-items: center
-    &:hover, &.active
-        input
-            transition: none
-            opacity: .8
     input
-        opacity: 0
-        text-align: center
+        &:focus
+            background-color: #222 !important
         &.min
             position: absolute
             left: -2em
@@ -64,9 +61,6 @@ const { active } = useActiveFlash(() => props.pressed)
             position: absolute
             right: -1.5em
             bottom: -.5em
-    &.disabled
-        input
-            display: none
     &.pressed
         background: radial-gradient(#5ca, #5ca 60%, #111)
         box-shadow: inset .1em .1em .5em rgba(0, 0, 0, .5)

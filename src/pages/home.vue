@@ -5,16 +5,6 @@
             <notifier ref="notifications" />
             <div :class="['device', waitingForMode, { waitingForMode }]">
                 <div class="section encoders">
-                    <encoder-knob
-                        v-for="(encoder, idx) of currentGroup.encoders"
-                        :key="idx"
-                        v-bind="encoder"
-                        :pressed="currentGroup.encoderBtns[idx].pressed"
-                        v-model:cc-button="currentGroup.encoderBtns[idx].cc"
-                        v-model:min="encoder.min"
-                        v-model:max="encoder.max"
-                        v-model:channel="encoder.channel"
-                    />
                     <div class="group">
                         <select
                             :value="currentGroup.index"
@@ -37,6 +27,16 @@
                             v-model="currentGroup.name"
                         >
                     </div>
+                    <encoder-knob
+                        v-for="(encoder, idx) of currentGroup.encoders"
+                        :key="idx"
+                        v-bind="encoder"
+                        :pressed="currentGroup.encoderBtns[idx].pressed"
+                        v-model:cc-button="currentGroup.encoderBtns[idx].cc"
+                        v-model:min="encoder.min"
+                        v-model:max="encoder.max"
+                        v-model:channel="encoder.channel"
+                    />
                 </div>
                 <div class="section">
                     <div class="faders">
@@ -287,10 +287,12 @@ onBeforeUnmount(() => controllers.removeEventListener('action', recv))
 
 <style lang="sass">
 main
-    padding: 2rem
+    padding: 1rem
     display: flex
     flex-direction: column
     align-items: center
+    @media(min-width: 700px)
+        padding: 2rem
 
     > div > .actions
         padding: 2rem
@@ -330,11 +332,13 @@ main
                 background: #88888866
 
     h1
-        font-size: 1.5em
+        font-size: 1.2em
         margin-bottom: .5em
         text-align: center
         font-family: Audiowide
         text-transform: uppercase
+        @media(min-width: 700px)
+            font-size: 1.5em
 
     p
         text-align: center
@@ -344,8 +348,10 @@ main
         display: flex
         justify-content: space-between
         align-items: center
-        padding: .5rem 3rem
+        padding: .5rem 1rem
         margin-bottom: 1em
+        @media(min-width: 500px)
+            padding: .5rem 3rem
         .horizontal-fader
             height: 4rem
             width: 50%
@@ -370,25 +376,34 @@ main
                     opacity: 1
 
         input
-            max-width: 2.5em
+            max-width: 3em
             &[type=number]
                 &::-webkit-inner-spin-button, &::-webkit-outer-spin-button
                     -webkit-appearance: none
-        input, select
-            transition: all .5s
-            background: transparent
-            border: inset 1px #666
-            border-color: transparent
-            border-radius: .5em
-            padding: .2em .5em
-            color: white
-            display: block
-            font-size: .7em
-            &:hover
-                border-color: #666
-                background-color: #222
-                opacity: 1
-                transition: none
+        .control
+            &:hover, &.active, &:has(*:focus)
+                input, select
+                    transition: none
+                    opacity: .5
+                .handle input
+                    opacity: 1
+            input, select
+                opacity: 0
+                text-align: center
+                transition: all .5s
+                background: transparent
+                border: inset 1px #666
+                border-color: transparent
+                border-radius: .5em
+                padding: .2em .5em
+                color: white
+                display: block
+                font-size: .7em
+                &:hover
+                    border-color: #666
+                    background-color: #222
+                    opacity: 1
+                    transition: none
         .section
             border: solid 2px #ccc
             border-radius: .5rem
@@ -419,9 +434,11 @@ main
     .green-buttons
         display: flex
         padding: .5rem
-        gap: 1rem
+        gap: .5rem
         > *
             flex-grow: 1
+        @media(min-width: 700px)
+            gap: 1rem
 
     .group
         position: absolute
@@ -440,8 +457,6 @@ main
             background: inherit
             border: none
             font-size: inherit
-            &:focus
-                outline: none
             &:hover
                 background-color: inherit
                 color: inherit
@@ -495,7 +510,7 @@ main
                         align-items: center
             &.right-anchor
                 left: auto
-                right: 0
+                right: 1em
                 top: -4em
 
         @keyframes appear
