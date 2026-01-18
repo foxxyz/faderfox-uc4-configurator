@@ -3,6 +3,9 @@
         :class="['push-button control', { active, disabled, pressed }]"
         :style="{ background: `radial-gradient(${color}, ${color} 60%, #111)` }"
     >
+        <channel-select
+            v-model="channel"
+        />
         <input
             v-if="!disabled"
             class="cc"
@@ -16,9 +19,11 @@
 </template>
 
 <script setup>
+import channelSelect from '@/components/channel-select.vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
 
 const cc = defineModel('cc', { type: Number })
+const channel = defineModel('channel', { type: Number })
 
 const props = defineProps({
     color: {
@@ -49,6 +54,10 @@ const { active } = useActiveFlash(() => props.pressed)
     display: flex
     justify-content: center
     align-items: center
+    &.pressed
+        background: radial-gradient(#5ca, #5ca 60%, #111)
+        box-shadow: inset .1em .1em .5em rgba(0, 0, 0, .5)
+        transform: translate(1px, 1px)
     input
         &:focus
             background-color: #222 !important
@@ -61,8 +70,7 @@ const { active } = useActiveFlash(() => props.pressed)
             position: absolute
             right: -1.5em
             bottom: -.5em
-    &.pressed
-        background: radial-gradient(#5ca, #5ca 60%, #111)
-        box-shadow: inset .1em .1em .5em rgba(0, 0, 0, .5)
-        transform: translate(1px, 1px)
+    .channel-select
+        position: absolute
+        top: -2em
 </style>
