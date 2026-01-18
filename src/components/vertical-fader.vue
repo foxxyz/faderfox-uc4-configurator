@@ -1,5 +1,5 @@
 <template>
-    <div :class="['vertical-fader', { active }]">
+    <div :class="['vertical-fader control', { active }]">
         <div class="bg" />
         <div class="track" />
         <channel-select
@@ -60,15 +60,6 @@ const AMOUNT_PER_UNIT = 86 / 127
     display: flex
     justify-content: center
     position: relative
-    &:hover, &.active
-        input, select
-            transition: none
-            opacity: .5
-        .handle input
-            opacity: 1
-    input, select
-        opacity: 0
-        text-align: center
     .bg
         position: absolute
         z-index: 0

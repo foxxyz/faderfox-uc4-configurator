@@ -71,9 +71,13 @@ html, body
     min-height: 100vh
 
 // Reset input styles
-input, select
+input, select, button
     font-size: inherit
     font-family: inherit
+    &:focus
+        outline: solid 1px #26aa3C
+        background-color: #222
+        opacity: 1 !important
 
 select
     cursor: pointer

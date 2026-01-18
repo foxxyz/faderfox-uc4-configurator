@@ -1,5 +1,5 @@
 <template>
-    <div :class="['encoder-knob', { active, pressed }]">
+    <div :class="['encoder-knob control', { active, pressed }]">
         <div class="knob" :style="{ transform: `rotate(${HOME_POSITION + value * DEG_PER_UNIT}deg)` }" />
         <channel-select
             v-model="channel"
@@ -80,11 +80,6 @@ const { active } = useActiveFlash(() => [props.value, props.pressed])
     background: radial-gradient(#000, #777)
     border: solid 2px #111
     position: relative
-    &:hover, &.active
-        input, select
-            opacity: .5
-    input, select
-        opacity: 0
     > input, > select
         position: absolute
         &.min
@@ -107,8 +102,6 @@ const { active } = useActiveFlash(() => [props.value, props.pressed])
         left: 50%
         top: 50%
         transform: translate(-50%, -50%)
-        input
-            text-align: center
     .knob
         display: block
         width: 70%
