@@ -4,6 +4,7 @@
         :style="{ background: `radial-gradient(${color}, ${color} 60%, #111)` }"
     >
         <channel-select
+            v-if="!disabled"
             v-model="channel"
         />
         <input

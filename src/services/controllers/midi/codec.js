@@ -84,7 +84,7 @@ const BANK_MAP = [
         section: 'groups',
         filter: groups => groups,
         banks: [
-            { sectionAddress: 0x14, address: 0x80, codec: groupNames }
+            { sectionAddress: 0x14, address: 0x80, codec: groupNames },
         ],
     },
     {

@@ -29,19 +29,23 @@
                     </div>
                     <encoder-knob
                         v-for="(encoder, idx) of currentGroup.encoders"
+                        :class="{ modified: hasChanged(encoder) }"
                         :key="idx"
                         v-bind="encoder"
                         :pressed="currentGroup.encoderBtns[idx].pressed"
+                        v-model:cc="encoder.cc"
                         v-model:cc-button="currentGroup.encoderBtns[idx].cc"
                         v-model:min="encoder.min"
                         v-model:max="encoder.max"
                         v-model:channel="encoder.channel"
+                        @update:channel="$event => currentGroup.encoderBtns[idx].channel = $event"
                     />
                 </div>
                 <div class="section">
                     <div class="faders">
                         <vertical-fader
                             v-for="(fader, idx) of currentGroup.faders"
+                            :class="{ modified: hasChanged(fader) }"
                             :key="idx"
                             v-bind="fader"
                             v-model:cc="fader.cc"
@@ -57,6 +61,7 @@
                             :disabled="true"
                         />
                         <horizontal-fader
+                            :class="{ modified: hasChanged(currentGroup.xFader) }"
                             v-bind="currentGroup.xFader"
                             v-model:cc="currentGroup.xFader.cc"
                             v-model:min="currentGroup.xFader.min"
@@ -73,6 +78,7 @@
                         <push-button
                             v-for="(button, idx) of currentGroup.greenBtns"
                             :key="idx"
+                            :class="{ modified: hasChanged(button) }"
                             color="#0a6"
                             v-bind="button"
                             v-model:cc="button.cc"
@@ -105,6 +111,17 @@
                         </li>
                     </ul>
                 </div>
+                <div class="status" v-if="waitingForMode === 'armed'">
+                    <p>MIDI Message Learned: {{ formatMIDI(activeRecording) }}</p>
+                    <p>Touch Faderfox Control to map to...</p>
+                    <ul class="actions">
+                        <li>
+                            <button type="button" @click="cancelMode">
+                                Cancel
+                            </button>
+                        </li>
+                    </ul>
+                </div>
             </div>
             <div class="actions">
                 <ul>
@@ -117,6 +134,9 @@
                         <button type="button" @click="enterMode('send')" :disabled="activeInstructions.length">
                             Write to Device
                         </button>
+                        <p class="warning" v-if="pendingChanges">
+                            Unsaved Changes
+                        </p>
                     </li>
                 </ul>
             </div>
@@ -138,11 +158,28 @@
                 <midi-monitor v-show="showMIDIMonitor" />
             </transition>
         </aside>
+        <aside class="other-devices learn" v-if="otherDevices.length">
+            <h3>
+                Other Devices
+            </h3>
+            <ul>
+                <li v-for="device of otherDevices" :key="device.id">
+                    <span class="name">{{ device.name }}</span>
+                    <button
+                        type="button"
+                        :class="{ active: learnMode === device.id }"
+                        @click="toggleLearn(device.id)"
+                    >
+                        {{ learnMode === device.id ? 'Disconnect' : 'Learn' }}
+                    </button>
+                </li>
+            </ul>
+        </aside>
     </main>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, reactive, ref } from 'vue'
 
 import encoderKnob from '@/components/encoder-knob.vue'
 import pushButton from '@/components/push-button.vue'
@@ -152,8 +189,29 @@ import notifier from '@/components/notifier.vue'
 import verticalFader from '@/components/vertical-fader.vue'
 
 import DEFAULT_CONFIG from '@/data/empty-config.json'
+import { decodeMIDI, formatMIDI } from '@/util/format.js'
 
-const groups = ref(DEFAULT_CONFIG)
+const SECTIONS = ['encoders', 'faders', 'encoderBtns', 'greenBtns']
+function addTracking(config) {
+    for (const group of config) {
+        group.lastName = group.name
+        for (const section of SECTIONS) {
+            for (const control of group[section]) {
+                for (const key in control) {
+                    if (key.startsWith('last')) continue
+                    control[`last${key[0].toUpperCase()}${key.slice(1)}`] = control[key]
+                }
+            }
+        }
+        const control = group.xFader
+        for (const key in control) {
+            control[`last${key[0].toUpperCase()}${key.slice(1)}`] = control[key]
+        }
+    }
+    return config
+}
+
+const groups = ref(addTracking(DEFAULT_CONFIG))
 const currentGroup = ref(groups.value[0])
 const controls = computed(() => [...currentGroup.value.encoders, ...currentGroup.value.faders, currentGroup.value.xFader])
 
@@ -164,15 +222,36 @@ function toggleMIDIMonitor() {
     showMIDIMonitor.value = !showMIDIMonitor.value
 }
 
-function findInOtherGroups(cc, sections = []) {
+const learnMode = ref('')
+function toggleLearn(deviceID) {
+    learnMode.value = learnMode.value === deviceID ? null : deviceID
+}
+
+function groupHasChanges(group) {
+    return group.name !== group.lastName ||
+        group.faders.some(hasChanged) ||
+        group.encoders.some(hasChanged) ||
+        group.encoderBtns.some(hasChanged) ||
+        group.greenBtns.some(hasChanged) ||
+        hasChanged(group.xFader)
+}
+function hasChanged(control) {
+    for (const key in control) {
+        if (key.startsWith('last') || key === 'value' || key === 'pressed') continue
+        if (control[key] !== control[`last${key[0].toUpperCase()}${key.slice(1)}`]) return true
+    }
+}
+const pendingChanges = computed(() => groups.value.some(g => groupHasChanges(g)))
+
+function findInOtherGroups({ channel, cc }, sections = []) {
     for (const group of groups.value) {
         for (const section of sections) {
             if (!group[section].length) {
-                if (group[section].cc === cc) return { group, control: group[section] }
+                if (group[section].lastCc === cc && group[section].lastChannel === channel) return { group, control: group[section] }
                 continue
             }
             for (const control of group[section]) {
-                if (control.cc === cc) return { group, control }
+                if (control.lastCc === cc && control.lastChannel === channel) return { group, control }
             }
         }
     }
@@ -180,36 +259,48 @@ function findInOtherGroups(cc, sections = []) {
 
 function recv({ action, args }) {
     if (action === 'controlChange') {
-        const [cc, value] = args
-        let matchingControls = controls.value.filter(b => b.cc === cc)
+        const [channel, cc, value] = args
+        let matchingControls = controls.value.filter(c => c.lastCc === cc && c.lastChannel === channel)
         // No matching control in this group, find one in the others
-        if (!matchingControls.length) {
-            const otherGroup = findInOtherGroups(cc, ['encoders', 'faders', 'xFader'])
+        if (!matchingControls.length && !learnMode.value) {
+            const otherGroup = findInOtherGroups({ cc, channel }, ['encoders', 'faders', 'xFader'])
             if (!otherGroup) return notifications.value.notify({ text: 'No group found for control. Ensure your current configuration is loaded', severity: 'error' })
             notifications.value.notify({ text: `Auto-switching to group ${otherGroup.group.name}` })
             currentGroup.value = otherGroup.group
             matchingControls = [otherGroup.control]
         }
         for (const control of matchingControls) {
-            control.value = value
+            if (activeRecording.value) {
+                const { channel, cc } = decodeMIDI(activeRecording.value)
+                control.cc = cc
+                control.channel = channel
+                activeRecording.value = null
+                cancelMode()
+            } else {
+                control.value = value
+            }
         }
-    } else if (action === 'buttonDown') {
-        const cc = args[0]
-        let control = currentGroup.value.encoderBtns.find(b => b.cc === cc) || currentGroup.value.greenBtns.find(b => b.cc === cc)
-        if (!control) {
-            const otherGroup = findInOtherGroups(cc, ['encoderBtns', 'greenBtns'])
+    } else if (action === 'buttonDown' || action === 'buttonUp') {
+        const [channel, cc] = args
+        let control = currentGroup.value.encoderBtns.find(c => c.lastCc === cc && c.lastChannel === channel) || currentGroup.value.greenBtns.find(c => c.lastCc === cc && c.lastChannel === channel)
+        if (!control && !learnMode.value) {
+            const otherGroup = findInOtherGroups({ cc, channel }, ['encoderBtns', 'greenBtns'])
             if (!otherGroup) return notifications.value.notify({ text: 'No group found for control. Ensure your current configuration is loaded', severity: 'error' })
             notifications.value.notify({ text: `Auto-switching to group ${otherGroup.group.name}` })
             currentGroup.value = otherGroup.group
             control = otherGroup.control
         }
-        control.pressed = true
-    } else if (action === 'buttonUp') {
-        const id = args[0]
-        const button = currentGroup.value.encoderBtns.find(b => b.cc === id) || currentGroup.value.greenBtns.find(b => b.cc === id)
-        button.pressed = false
+        if (activeRecording.value && control) {
+            const { channel, cc } = decodeMIDI(activeRecording.value)
+            control.cc = cc
+            control.channel = channel
+            activeRecording.value = null
+            cancelMode()
+        } else {
+            control.pressed = action === 'buttonDown'
+        }
     } else if (action === 'load') {
-        groups.value = args[0]
+        groups.value = addTracking(args[0])
         currentGroup.value = groups.value[0]
         cancelMode()
         notifications.value.notify({ text: 'Configuration Received Successfully' })
@@ -275,14 +366,46 @@ function cancelMode() {
 const controllers = inject('$controllers')
 
 function send() {
-    const device = controllers.attachedDevices[0]
-    device.load(groups.value)
+    uc4.load(groups.value)
+    groups.value = addTracking(groups.value)
+    currentGroup.value = groups.value[0]
     cancelMode()
-    notifications.value.notify({ text: 'Configuration Sent! Press SHIFT to return to normal operation.' })
+    notifications.value.notify({ text: 'Configuration Sent! Press Setup to return to normal operation.' })
 }
 
-controllers.addEventListener('action', recv)
-onBeforeUnmount(() => controllers.removeEventListener('action', recv))
+// Learn incoming messages for enabled devices
+const activeRecording = ref()
+controllers.addEventListener('action', ({ action, args: [id, name, data] }) => {
+    // Ignore non-log messages
+    if (action !== 'log') return
+    // Ignore sysex messages
+    if ((data[0] & 0xf0) === 0xf0) return
+    // Ignore devices that are not being learned
+    if (learnMode.value !== id) return
+    // Record the current MIDI data
+    activeRecording.value = data
+    waitingForMode.value = 'armed'
+})
+
+// Track devices that are connected (UC4 is special case)
+let uc4
+const otherDevices = reactive([])
+function onConnect({ device }) {
+    if (device.name === 'Faderfox UC4') {
+        notifications.value.notify({ text: 'Faderfox UC4 successfully connected' })
+        uc4 = device
+        uc4.addEventListener('action', recv)
+    } else {
+        otherDevices.push(device)
+    }
+}
+onBeforeUnmount(() => {
+    if (!uc4) return
+    uc4.removeEventListener('action', recv)
+})
+
+controllers.addEventListener('connect', onConnect)
+onBeforeUnmount(() => controllers.removeEventListener('connect', onConnect))
 </script>
 
 <style lang="sass">
@@ -298,10 +421,23 @@ main
         padding: 2rem
         button
             width: 12em
+            margin-bottom: 1em
+        li
+            position: relative
         ul
             display: flex
             list-style: none
             justify-content: space-around
+        .warning
+            position: absolute
+            left: 50%
+            top: -1em
+            white-space: nowrap
+            transform: translate(-50%, -50%)
+            background: #c44
+            font-size: .8em
+            padding: .2em 1em
+            border-radius: .5em
 
     aside.monitor
         position: absolute
@@ -330,6 +466,26 @@ main
                 transition: transform .5s
             &:hover
                 background: #88888866
+
+    aside.other-devices
+        position: absolute
+        left: 0
+        top: 0
+        font-size: .8em
+        background: #88888844
+        padding: 1em
+        h3
+            margin-bottom: 1em
+            font-family: Audiowide
+            text-transform: uppercase
+            font-size: .8em
+            gap: .5em
+        li
+            display: flex
+            gap: 1em
+            align-items: center
+        ul
+            list-style: none
 
     h1
         font-size: 1.2em
@@ -387,6 +543,8 @@ main
                     opacity: .5
                 .handle input
                     opacity: 1
+            &.modified
+                outline: dashed 2px red
             input, select
                 opacity: 0
                 text-align: center
