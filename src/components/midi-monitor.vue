@@ -23,22 +23,20 @@
 
 <script setup>
 import { inject, reactive, ref } from 'vue'
+import { formatMIDI } from '@/util/format.js'
 
 const controller = inject('$controllers')
 
 const MAX_LOG_SIZE = 50
 const log = reactive([])
 
-function format({ time, data }) {
+function format({ time, name, data }) {
     const seconds = (Math.round(time) / 1000).toFixed(2)
     if (activeFormat.value === 'hex') {
         const hex = [...data].map(b => b.toString(16).padStart(2, '0'))
-        return `${seconds}: [${hex.join(' ')}]`
+        return `${seconds}: [${name}] [${hex.join(' ')}]`
     }
-    const channel = (data[0] & 0xf) + 1
-    const cc = data[1]
-    const value = data[2]
-    return `${seconds}: CH${channel} CC#${cc} ${value}`
+    return `${seconds}: [${name}] ${formatMIDI(data)}`
 }
 
 const FORMATS = [
@@ -50,13 +48,13 @@ function setFormat(type) {
     activeFormat.value = type
 }
 
-controller.addEventListener('action', ({ action, args: [data] }) => {
+controller.addEventListener('action', ({ action, args: [id, name, data] }) => {
     // Ignore non-log messages
     if (action !== 'log') return
     // Ignore sysex messages
-    if ((data & 0xf0) === 0xf0) return
+    if ((data[0] & 0xf0) === 0xf0) return
     const time = performance.now()
-    log.unshift({ time, data })
+    log.unshift({ time, name, data })
     log.splice(MAX_LOG_SIZE, log.length - MAX_LOG_SIZE)
 })
 </script>

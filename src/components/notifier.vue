@@ -15,7 +15,7 @@ import { reactive } from 'vue'
 
 const notifications = reactive([])
 function notify({ text, severity = 'info' }) {
-    notifications.push({ text, severity })
+    if (!notifications.find(n => n.text === text)) notifications.push({ text, severity })
     setTimeout(endNotification, 4000)
 }
 

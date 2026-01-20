@@ -1,4 +1,5 @@
 import MIDIDevices from './index.js'
+import { MIDIDevice } from './base.js'
 import { ConnectionEvent, DisconnectionEvent } from '../base.js'
 
 // Monitor and manage attached MIDI devices
@@ -12,12 +13,8 @@ export class MIDIController extends EventTarget {
             const deviceInfo = this.devices[name]
             // Continue if this device has already been instantiated
             if (deviceInfo.instance || !(deviceInfo.input && deviceInfo.output)) continue
-            // Find matching class
-            const deviceType = MIDIDevices.find(d => d.MIDIName === name)
-            if (!deviceType) {
-                console.warn(`No controller handler found for MIDI Device ${name}. Please add one.`)
-                continue
-            }
+            // Find matching class if available
+            const deviceType = MIDIDevices.find(d => d.MIDIName === name) || MIDIDevice
             // Connect the new device
             const device = new deviceType(this.devices[name])
             this.devices[name].instance = device
@@ -41,7 +38,7 @@ export class MIDIController extends EventTarget {
             delete this.devices[port.name]
         } else if (port.state === 'connected') {
             const name = port.name
-            if (!this.devices[name]) this.devices[name] = {}
+            if (!this.devices[name]) this.devices[name] = { name }
             this.devices[name][port.type] = port
             this.connectDevices()
         }
