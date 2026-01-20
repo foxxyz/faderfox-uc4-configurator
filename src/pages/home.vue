@@ -38,7 +38,7 @@
                         v-model:min="encoder.min"
                         v-model:max="encoder.max"
                         v-model:channel="encoder.channel"
-                        @update:channel="$event => currentGroup.encoderBtns[idx].channel = $event"
+                        @update:channel="$event => { currentGroup.encoderBtns[idx].channel = $event; currentGroup.encoderBtns[idx].type = 2; currentGroup.encoderBtns[idx].mode = 1 }"
                     />
                 </div>
                 <div class="section">
@@ -213,7 +213,7 @@ function addTracking(config) {
 
 const groups = ref(addTracking(DEFAULT_CONFIG))
 const currentGroup = ref(groups.value[0])
-const controls = computed(() => [...currentGroup.value.encoders, ...currentGroup.value.faders, currentGroup.value.xFader])
+const controls = computed(() => [...currentGroup.value.encoders, ...currentGroup.value.faders, ...currentGroup.value.encoderBtns, ...currentGroup.value.greenBtns, currentGroup.value.xFader])
 
 const notifications = ref()
 
@@ -263,7 +263,7 @@ function recv({ action, args }) {
         let matchingControls = controls.value.filter(c => c.lastCc === cc && c.lastChannel === channel)
         // No matching control in this group, find one in the others
         if (!matchingControls.length && !learnMode.value) {
-            const otherGroup = findInOtherGroups({ cc, channel }, ['encoders', 'faders', 'xFader'])
+            const otherGroup = findInOtherGroups({ cc, channel }, ['encoderBtns', 'encoders', 'faders', 'xFader', 'greenBtns'])
             if (!otherGroup) return notifications.value.notify({ text: 'No group found for control. Ensure your current configuration is loaded', severity: 'error' })
             notifications.value.notify({ text: `Auto-switching to group ${otherGroup.group.name}` })
             currentGroup.value = otherGroup.group
@@ -277,7 +277,8 @@ function recv({ action, args }) {
                 activeRecording.value = null
                 cancelMode()
             } else {
-                control.value = value
+                if (control.down !== undefined) control.pressed = value > 63
+                else control.value = value
             }
         }
     } else if (action === 'buttonDown' || action === 'buttonUp') {
