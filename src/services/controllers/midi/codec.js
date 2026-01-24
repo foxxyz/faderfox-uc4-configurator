@@ -102,7 +102,7 @@ const BANK_MAP = [
             { sectionAddress: 0x1c, address: 0x40, codec: keyList('cc') },
             { sectionAddress: 0x1c, address: 0x80, codec: keyList('min') },
             { sectionAddress: 0x1c, address: 0xc0, codec: keyList('max') },
-            { sectionAddress: 0x1d, address: 0x00, codec: keyList('ramp') },
+            { sectionAddress: 0x1d, address: 0x00, codec: modeDisplay },
         ],
     },
     {
