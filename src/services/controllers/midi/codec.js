@@ -111,8 +111,8 @@ const BANK_MAP = [
         banks: [
             { sectionAddress: 0x1d, address: 0x40, codec: channelType },
             { sectionAddress: 0x1d, address: 0x80, codec: keyList('cc') },
-            { sectionAddress: 0x1d, address: 0xc0, codec: keyList('up') },
-            { sectionAddress: 0x1e, address: 0x00, codec: keyList('down') },
+            { sectionAddress: 0x1d, address: 0xc0, codec: keyList('min') },
+            { sectionAddress: 0x1e, address: 0x00, codec: keyList('max') },
             { sectionAddress: 0x1e, address: 0x40, codec: modeDisplay },
         ],
     },
@@ -122,8 +122,8 @@ const BANK_MAP = [
         banks: [
             { sectionAddress: 0x1e, address: 0x80, codec: channelType },
             { sectionAddress: 0x1e, address: 0xc0, codec: keyList('cc') },
-            { sectionAddress: 0x1f, address: 0x00, codec: keyList('up') },
-            { sectionAddress: 0x1f, address: 0x40, codec: keyList('down') },
+            { sectionAddress: 0x1f, address: 0x00, codec: keyList('min') },
+            { sectionAddress: 0x1f, address: 0x40, codec: keyList('max') },
             { sectionAddress: 0x1f, address: 0x80, codec: modeDisplay },
         ],
     },
