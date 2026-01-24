@@ -41,8 +41,8 @@ describe('SysEx Decoding', () => {
             assert.equal(group.encoderBtns.length, 8)
             assert.deepEqual(group.encoderBtns[0], {
                 cc: i * 8,
-                down: 127,
-                up: 0,
+                max: 127,
+                min: 0,
                 mode: 0,
                 type: 1,
                 display: 0,
@@ -70,8 +70,8 @@ describe('SysEx Decoding', () => {
             assert.equal(group.greenBtns.length, 8)
             assert.deepEqual(group.greenBtns[0], {
                 cc: 64 + i * 8,
-                down: 127,
-                up: 0,
+                max: 127,
+                min: 0,
                 mode: 0,
                 type: 1,
                 display: 1,
