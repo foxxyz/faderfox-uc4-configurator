@@ -18,7 +18,8 @@
                 "cc": 8,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -26,7 +27,8 @@
                 "cc": 9,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -34,7 +36,8 @@
                 "cc": 10,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -42,7 +45,8 @@
                 "cc": 11,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -50,7 +54,8 @@
                 "cc": 12,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -58,7 +63,8 @@
                 "cc": 13,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -66,7 +72,8 @@
                 "cc": 14,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -74,7 +81,8 @@
                 "cc": 15,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -319,7 +327,8 @@
                 "cc": 16,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -327,7 +336,8 @@
                 "cc": 17,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -335,7 +345,8 @@
                 "cc": 18,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -343,7 +354,8 @@
                 "cc": 19,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -351,7 +363,8 @@
                 "cc": 20,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -359,7 +372,8 @@
                 "cc": 21,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -367,7 +381,8 @@
                 "cc": 22,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -375,7 +390,8 @@
                 "cc": 23,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -620,7 +636,8 @@
                 "cc": 24,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -628,7 +645,8 @@
                 "cc": 25,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -636,7 +654,8 @@
                 "cc": 26,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -644,7 +663,8 @@
                 "cc": 27,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -652,7 +672,8 @@
                 "cc": 28,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -660,7 +681,8 @@
                 "cc": 29,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -668,7 +690,8 @@
                 "cc": 30,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -676,7 +699,8 @@
                 "cc": 31,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -921,7 +945,8 @@
                 "cc": 32,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -929,7 +954,8 @@
                 "cc": 33,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -937,7 +963,8 @@
                 "cc": 34,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -945,7 +972,8 @@
                 "cc": 35,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -953,7 +981,8 @@
                 "cc": 36,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -961,7 +990,8 @@
                 "cc": 37,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -969,7 +999,8 @@
                 "cc": 38,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -977,7 +1008,8 @@
                 "cc": 39,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -1222,7 +1254,8 @@
                 "cc": 72,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1230,7 +1263,8 @@
                 "cc": 73,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1238,7 +1272,8 @@
                 "cc": 74,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1246,7 +1281,8 @@
                 "cc": 75,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1254,7 +1290,8 @@
                 "cc": 76,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1262,7 +1299,8 @@
                 "cc": 77,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1270,7 +1308,8 @@
                 "cc": 78,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1278,7 +1317,8 @@
                 "cc": 79,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -1523,7 +1563,8 @@
                 "cc": 80,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1531,7 +1572,8 @@
                 "cc": 81,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1539,7 +1581,8 @@
                 "cc": 82,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1547,7 +1590,8 @@
                 "cc": 83,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1555,7 +1599,8 @@
                 "cc": 84,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1563,7 +1608,8 @@
                 "cc": 85,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1571,7 +1617,8 @@
                 "cc": 86,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1579,7 +1626,8 @@
                 "cc": 87,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -1824,7 +1872,8 @@
                 "cc": 88,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1832,7 +1881,8 @@
                 "cc": 89,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1840,7 +1890,8 @@
                 "cc": 90,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1848,7 +1899,8 @@
                 "cc": 91,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1856,7 +1908,8 @@
                 "cc": 92,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1864,7 +1917,8 @@
                 "cc": 93,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1872,7 +1926,8 @@
                 "cc": 94,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -1880,7 +1935,8 @@
                 "cc": 95,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [
@@ -2125,7 +2181,8 @@
                 "cc": 96,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2133,7 +2190,8 @@
                 "cc": 97,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2141,7 +2199,8 @@
                 "cc": 98,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2149,7 +2208,8 @@
                 "cc": 99,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2157,7 +2217,8 @@
                 "cc": 100,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2165,7 +2226,8 @@
                 "cc": 101,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2173,7 +2235,8 @@
                 "cc": 102,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             },
             {
                 "type": 2,
@@ -2181,7 +2244,8 @@
                 "cc": 103,
                 "min": 0,
                 "max": 127,
-                "ramp": 49
+                "mode": 3,
+                "display": 1
             }
         ],
         "encoderBtns": [

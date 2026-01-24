@@ -34,7 +34,8 @@ describe('SysEx Decoding', () => {
                 min: 0,
                 max: 127,
                 type: 2,
-                ramp: 49,
+                mode: 3,
+                display: 1,
                 channel: 1,
             })
             assert.equal(group.encoderBtns.length, 8)
