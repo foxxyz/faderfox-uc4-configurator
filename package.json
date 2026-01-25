@@ -1,6 +1,6 @@
 {
   "name": "uc4-configurator",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "WebMIDI Configurator for FaderFox UC4",
   "scripts": {
     "dev": "vite",
