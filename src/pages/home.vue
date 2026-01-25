@@ -27,27 +27,37 @@
                             v-model="currentGroup.name"
                         >
                     </div>
-                    <encoder-knob
-                        v-for="(encoder, idx) of currentGroup.encoders"
-                        :class="{ modified: hasChanged(encoder) }"
+                    <div
+                        class="encoder-wrapper"
+                        v-for="({ encoder, button }, idx) of encoders"
                         :key="idx"
-                        v-bind="encoder"
-                        :pressed="currentGroup.encoderBtns[idx].pressed"
-                        v-model:cc="encoder.cc"
-                        v-model:cc-button="currentGroup.encoderBtns[idx].cc"
-                        v-model:min="encoder.min"
-                        v-model:max="encoder.max"
-                        v-model:channel="encoder.channel"
-                        @update:channel="$event => { currentGroup.encoderBtns[idx].channel = $event; currentGroup.encoderBtns[idx].type = 2; currentGroup.encoderBtns[idx].mode = 1 }"
-                    />
+                    >
+                        <encoder-knob
+                            :class="{ modified: hasChanged(encoder), editing: editSelection.parameters == encoder }"
+                            v-bind="encoder"
+                            @mousedown="bindEditWindow(encoder, 'encoder')"
+                            v-model:cc="encoder.cc"
+                            v-model:min="encoder.min"
+                            v-model:max="encoder.max"
+                            v-model:channel="encoder.channel"
+                        />
+                        <push-button
+                            :class="{ modified: hasChanged(button), editing: editSelection.parameters == button }"
+                            :pressed="button.value === button.max"
+                            @mousedown="bindEditWindow(button, 'button')"
+                            v-model:channel="button.channel"
+                            v-model:cc="button.cc"
+                        />
+                    </div>
                 </div>
                 <div class="section">
                     <div class="faders">
                         <vertical-fader
                             v-for="(fader, idx) of currentGroup.faders"
-                            :class="{ modified: hasChanged(fader) }"
+                            :class="{ modified: hasChanged(fader), editing: editSelection.parameters == fader }"
                             :key="idx"
                             v-bind="fader"
+                            @mousedown="bindEditWindow(fader, 'fader')"
                             v-model:cc="fader.cc"
                             v-model:min="fader.min"
                             v-model:max="fader.max"
@@ -61,7 +71,8 @@
                             :disabled="true"
                         />
                         <horizontal-fader
-                            :class="{ modified: hasChanged(currentGroup.xFader) }"
+                            :class="{ modified: hasChanged(currentGroup.xFader), editing: editSelection.parameters == currentGroup.xFader }"
+                            @mousedown="bindEditWindow(currentGroup.xFader, 'fader')"
                             v-bind="currentGroup.xFader"
                             v-model:cc="currentGroup.xFader.cc"
                             v-model:min="currentGroup.xFader.min"
@@ -78,9 +89,10 @@
                         <push-button
                             v-for="(button, idx) of currentGroup.greenBtns"
                             :key="idx"
-                            :class="{ modified: hasChanged(button) }"
+                            :class="{ modified: hasChanged(button), editing: editSelection.parameters == button }"
+                            @mousedown="bindEditWindow(button, 'button')"
                             color="#0a6"
-                            v-bind="button"
+                            :pressed="button.value === button.max"
                             v-model:cc="button.cc"
                             v-model:channel="button.channel"
                         />
@@ -122,6 +134,14 @@
                         </li>
                     </ul>
                 </div>
+                <button
+                    type="button"
+                    class="advanced-toggle"
+                    title="Show Advanced Options"
+                    @click="toggleEditWindow()"
+                >
+                    ⚙
+                </button>
             </div>
             <div class="actions">
                 <ul>
@@ -175,12 +195,20 @@
                 </li>
             </ul>
         </aside>
+        <transition name="appear">
+            <edit-window
+                v-if="showEditWindow"
+                v-bind="editSelection"
+                @close="toggleEditWindow(false)"
+            />
+        </transition>
     </main>
 </template>
 
 <script setup>
 import { computed, inject, onBeforeUnmount, reactive, ref } from 'vue'
 
+import editWindow from '@/components/edit-window.vue'
 import encoderKnob from '@/components/encoder-knob.vue'
 import pushButton from '@/components/push-button.vue'
 import horizontalFader from '@/components/horizontal-fader.vue'
@@ -214,6 +242,16 @@ function addTracking(config) {
 const groups = ref(addTracking(DEFAULT_CONFIG))
 const currentGroup = ref(groups.value[0])
 const controls = computed(() => [...currentGroup.value.encoders, ...currentGroup.value.faders, ...currentGroup.value.encoderBtns, ...currentGroup.value.greenBtns, currentGroup.value.xFader])
+const encoders = computed(() => {
+    const zipped = []
+    for (let i = 0; i < currentGroup.value.encoders.length; i++) {
+        zipped.push({
+            encoder: currentGroup.value.encoders[i],
+            button: currentGroup.value.encoderBtns[i],
+        })
+    }
+    return zipped
+})
 
 const notifications = ref()
 
@@ -225,6 +263,15 @@ function toggleMIDIMonitor() {
 const learnMode = ref('')
 function toggleLearn(deviceID) {
     learnMode.value = learnMode.value === deviceID ? null : deviceID
+}
+
+const showEditWindow = ref(false)
+const editSelection = ref({ parameters: {} })
+function bindEditWindow(parameters, type) {
+    editSelection.value = { parameters, type }
+}
+function toggleEditWindow(enabled) {
+    showEditWindow.value = enabled !== undefined ? enabled : !showEditWindow.value
 }
 
 function groupHasChanges(group) {
@@ -258,7 +305,7 @@ function findInOtherGroups({ channel, cc }, sections = []) {
 }
 
 function recv({ action, args }) {
-    if (action === 'controlChange') {
+    if (action === 'controlChange' || action === 'buttonDown' || action === 'buttonUp') {
         const [channel, cc, value] = args
         let matchingControls = controls.value.filter(c => c.lastCc === cc && c.lastChannel === channel)
         // No matching control in this group, find one in the others
@@ -277,28 +324,8 @@ function recv({ action, args }) {
                 activeRecording.value = null
                 cancelMode()
             } else {
-                if (control.down !== undefined) control.pressed = value > 63
-                else control.value = value
+                control.value = value
             }
-        }
-    } else if (action === 'buttonDown' || action === 'buttonUp') {
-        const [channel, cc] = args
-        let control = currentGroup.value.encoderBtns.find(c => c.lastCc === cc && c.lastChannel === channel) || currentGroup.value.greenBtns.find(c => c.lastCc === cc && c.lastChannel === channel)
-        if (!control && !learnMode.value) {
-            const otherGroup = findInOtherGroups({ cc, channel }, ['encoderBtns', 'greenBtns'])
-            if (!otherGroup) return notifications.value.notify({ text: 'No group found for control. Ensure your current configuration is loaded', severity: 'error' })
-            notifications.value.notify({ text: `Auto-switching to group ${otherGroup.group.name}` })
-            currentGroup.value = otherGroup.group
-            control = otherGroup.control
-        }
-        if (activeRecording.value && control) {
-            const { channel, cc } = decodeMIDI(activeRecording.value)
-            control.cc = cc
-            control.channel = channel
-            activeRecording.value = null
-            cancelMode()
-        } else {
-            control.pressed = action === 'buttonDown'
         }
     } else if (action === 'load') {
         groups.value = addTracking(args[0])
@@ -324,7 +351,7 @@ const INSTRUCTIONS = {
             content: 'Press <kbd>Setup</kbd> twice until the Setup LED is on',
         },
         {
-            attachTo: '.encoder-knob:nth-child(4 of .encoder-knob)',
+            attachTo: '.encoder-wrapper:nth-child(4 of .encoder-wrapper)',
             content: 'Hold encoder <kbd>#4</kbd>.<br/><br/>[Display shows <kbd>Sndc</kbd>]<br/><br/>Keep holding until the lines disappear.',
         }
     ],
@@ -338,7 +365,7 @@ const INSTRUCTIONS = {
             content: 'Press <kbd>Setup</kbd> twice until the Setup LED is on',
         },
         {
-            attachTo: '.encoder-knob:nth-child(7 of .encoder-knob)',
+            attachTo: '.encoder-wrapper:nth-child(7 of .encoder-wrapper)',
             content: 'Hold encoder <kbd>#7</kbd>.<br/><br/>[Display shows <kbd>rec</kbd>]<br/><br/>Keep holding until <kbd>rc00</kbd> is visible.',
         }
     ],
@@ -501,6 +528,25 @@ main
         text-align: center
         margin-bottom: 1em
 
+    .advanced-toggle
+        position: absolute
+        top: .5rem
+        right: .5rem
+        background: transparent
+        color: #444
+        border: none
+        font-size: 2em
+        padding: 0
+        width: 1em
+        height: 1em
+        border-radius: 0
+        display: flex
+        justify-content: center
+        align-items: center
+        &:hover
+            color: white
+            background: transparent
+
     .cross-fader
         display: flex
         justify-content: space-between
@@ -521,15 +567,15 @@ main
         border-radius: .5rem
         position: relative
         &.waitingForMode
-            .faders, .horizontal-fader, .green-buttons, .encoder-knob, .group
+            .faders, .horizontal-fader, .green-buttons, .encoder-wrapper, .group
                 transition: opacity .3s
                 opacity: .1
                 pointer-events: none
             &.load
-                .encoder-knob:nth-child(4 of .encoder-knob)
+                .encoder-wrapper:nth-child(4 of .encoder-wrapper)
                     opacity: 1
             &.send
-                .encoder-knob:nth-child(7 of .encoder-knob)
+                .encoder-wrapper:nth-child(7 of .encoder-wrapper)
                     opacity: 1
 
         input
@@ -544,29 +590,33 @@ main
                     opacity: .5
                 .handle input
                     opacity: 1
+            &.editing
+                outline: solid 1px #ccc6
             &.modified
                 outline: dashed 2px red
             input, select
                 opacity: 0
                 text-align: center
                 transition: all .5s
-                background: transparent
-                border: inset 1px #666
                 border-color: transparent
-                border-radius: .5em
-                padding: .2em .5em
-                color: white
-                display: block
+                background: transparent
                 font-size: .7em
                 &:hover
                     border-color: #666
                     background-color: #222
                     opacity: 1
                     transition: none
+            select
+                padding: .2em 0
         .section
             border: solid 2px #ccc
             border-radius: .5rem
             margin-bottom: .2rem
+
+    .edit-window
+        position: absolute
+        right: 2rem
+        top: 4rem
 
     .encoders
         display: flex
@@ -576,9 +626,23 @@ main
         gap: 5rem 2rem
         justify-content: space-between
         position: relative
-        .encoder-knob
+        .encoder-wrapper
             flex-basis: 17%
             flex-grow: 1
+            position: relative
+        .push-button
+            position: absolute
+            top: 50%
+            width: 70%
+            box-shadow: none
+            background: #444 !important
+            flex-direction: column
+            left: 50%
+            transform: translate(-50%, -50%)
+            &.pressed
+                background: radial-gradient(#ccc6, #ccc6 60%, #111) !important
+            .channel-select
+                position: static
 
     .faders
         display: flex
@@ -712,6 +776,12 @@ main
             background-position: 0 100%
         100%
             background-position: 0 -100%
+
+    .appear-enter-active, .appear-leave-active
+        transition: all .3s ease-in-out
+    .appear-enter-from, .appear-leave-to
+        opacity: 0
+        transform: scale(0.8) translate(0, -1em)
 
     .slide-enter-active, .slide-leave-active
         transition: all .3s ease-in-out
