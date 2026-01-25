@@ -1,29 +1,18 @@
 <template>
-    <div :class="['encoder-knob control', { active, pressed }]">
+    <div :class="['encoder-knob control', { active }]">
         <div class="knob" :style="{ transform: `rotate(${HOME_POSITION + value * DEG_PER_UNIT}deg)` }" />
         <channel-select
             v-model="channel"
         />
-        <div class="codes">
-            <div class="cc-knob">
-                <label>CC (Rotate)</label>
-                <input
-                    name="cc"
-                    title="Control Code (Rotate)"
-                    type="number"
-                    v-model="cc"
-                >
-            </div>
-            <div class="cc-button">
-                <label>CC (Press)</label>
-                <input
-                    name="ccButton"
-                    title="Control Code (Press)"
-                    type="number"
-                    v-model="ccButton"
-                >
-            </div>
-        </div>
+        <input
+            class="cc"
+            title="Control Code (Rotate)"
+            type="number"
+            min="0"
+            max="127"
+            size="2"
+            v-model="cc"
+        >
         <input
             class="min"
             type="number"
@@ -52,14 +41,9 @@ import { useActiveFlash } from '@/composables/active-flash.js'
 const cc = defineModel('cc', { type: Number })
 const min = defineModel('min', { type: Number })
 const max = defineModel('max', { type: Number })
-const ccButton = defineModel('ccButton', { type: Number })
 const channel = defineModel('channel', { type: Number })
 
 const props = defineProps({
-    pressed: {
-        type: Boolean,
-        default: false
-    },
     value: {
         type: Number,
         default: 0
@@ -89,19 +73,14 @@ const { active } = useActiveFlash(() => [props.value, props.pressed])
         &.max
             right: -1.5em
             bottom: -.5em
-        &.channel-select
-            left: 50%
+        &.cc
+            right: -1.5em
             top: -1em
-            transform: translate(-50%, -50%)
+        &.channel-select
+            left: -2em
+            top: -1em
     label
         display: none
-    &.pressed .knob
-        background: #ffffff44
-    .codes
-        position: absolute
-        left: 50%
-        top: 50%
-        transform: translate(-50%, -50%)
     .knob
         display: block
         width: 70%

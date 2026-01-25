@@ -29,9 +29,9 @@ export class MIDIDevice extends BaseController {
         if (commandType === MIDI_COMMANDS.CC) {
             this.emit({ action: 'controlChange', args: [channel + 1, eventCode, value] })
         } else if (commandType === MIDI_COMMANDS.NOTE_ON) {
-            this.emit({ action: 'buttonDown', args: [channel + 1, eventCode] })
+            this.emit({ action: 'buttonDown', args: [channel + 1, eventCode, value] })
         } else if (commandType === MIDI_COMMANDS.NOTE_OFF) {
-            this.emit({ action: 'buttonUp', args: [channel + 1, eventCode] })
+            this.emit({ action: 'buttonUp', args: [channel + 1, eventCode, value] })
         }
         return data
     }
