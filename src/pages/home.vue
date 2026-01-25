@@ -206,7 +206,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, reactive, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, reactive, ref, watch } from 'vue'
 
 import editWindow from '@/components/edit-window.vue'
 import encoderKnob from '@/components/encoder-knob.vue'
@@ -239,7 +239,44 @@ function addTracking(config) {
     return config
 }
 
-const groups = ref(addTracking(DEFAULT_CONFIG))
+const cachedConfig = localStorage.getItem('currentConfig')
+const groups = ref(cachedConfig ? JSON.parse(cachedConfig) : addTracking(DEFAULT_CONFIG))
+
+function groupHasChanges(group) {
+    return group.name !== group.lastName ||
+        group.faders.some(hasChanged) ||
+        group.encoders.some(hasChanged) ||
+        group.encoderBtns.some(hasChanged) ||
+        group.greenBtns.some(hasChanged) ||
+        hasChanged(group.xFader)
+}
+function hasChanged(control) {
+    for (const key in control) {
+        if (key.startsWith('last') || key === 'value' || key === 'pressed') continue
+        if (control[key] !== control[`last${key[0].toUpperCase()}${key.slice(1)}`]) return true
+    }
+}
+function getControlParameters(control) {
+    return [control.cc, control.channel, control.type, control.display, control.mode, control.min, control.max]
+}
+function groupParameters(group) {
+    return [
+        group.name,
+        group.faders.map(getControlParameters),
+        group.encoders.map(getControlParameters),
+        group.encoderBtns.map(getControlParameters),
+        group.greenBtns.map(getControlParameters),
+        getControlParameters(group.xFader),
+    ]
+}
+const pendingChanges = computed(() => groups.value.some(g => groupHasChanges(g)))
+const controlParameters = computed(() => groups.value.map(g => groupParameters(g)))
+
+// Persist locally whenever a change is made
+watch(controlParameters, () => {
+    localStorage.setItem('currentConfig', JSON.stringify(groups.value))
+}, { deep: true })
+
 const currentGroup = ref(groups.value[0])
 const controls = computed(() => [...currentGroup.value.encoders, ...currentGroup.value.faders, ...currentGroup.value.encoderBtns, ...currentGroup.value.greenBtns, currentGroup.value.xFader])
 const encoders = computed(() => {
@@ -265,6 +302,8 @@ function toggleLearn(deviceID) {
     learnMode.value = learnMode.value === deviceID ? null : deviceID
 }
 
+/* Advanced Editing Window */
+
 const showEditWindow = ref(false)
 const editSelection = ref({ parameters: {} })
 function bindEditWindow(parameters, type) {
@@ -273,22 +312,6 @@ function bindEditWindow(parameters, type) {
 function toggleEditWindow(enabled) {
     showEditWindow.value = enabled !== undefined ? enabled : !showEditWindow.value
 }
-
-function groupHasChanges(group) {
-    return group.name !== group.lastName ||
-        group.faders.some(hasChanged) ||
-        group.encoders.some(hasChanged) ||
-        group.encoderBtns.some(hasChanged) ||
-        group.greenBtns.some(hasChanged) ||
-        hasChanged(group.xFader)
-}
-function hasChanged(control) {
-    for (const key in control) {
-        if (key.startsWith('last') || key === 'value' || key === 'pressed') continue
-        if (control[key] !== control[`last${key[0].toUpperCase()}${key.slice(1)}`]) return true
-    }
-}
-const pendingChanges = computed(() => groups.value.some(g => groupHasChanges(g)))
 
 function findInOtherGroups({ channel, cc }, sections = []) {
     for (const group of groups.value) {
@@ -303,6 +326,8 @@ function findInOtherGroups({ channel, cc }, sections = []) {
         }
     }
 }
+
+/* MIDI Receiving */
 
 function recv({ action, args }) {
     if (action === 'controlChange' || action === 'buttonDown' || action === 'buttonUp') {
@@ -398,6 +423,8 @@ function send() {
     groups.value = addTracking(groups.value)
     currentGroup.value = groups.value[0]
     cancelMode()
+    // Write to local cache
+    localStorage.setItem('currentConfig', JSON.stringify(groups.value))
     notifications.value.notify({ text: 'Configuration Sent! Press Setup to return to normal operation.' })
 }
 
@@ -594,6 +621,8 @@ main
                 outline: solid 1px #ccc6
             &.modified
                 outline: dashed 2px red
+                &.editing
+                    outline-color: #fff
             input, select
                 opacity: 0
                 text-align: center

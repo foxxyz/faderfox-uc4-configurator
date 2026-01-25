@@ -54,7 +54,7 @@ const props = defineProps({
 const DEG_PER_UNIT = 300 / 127
 const HOME_POSITION = -150
 
-const { active } = useActiveFlash(() => [props.value, props.pressed])
+const { active } = useActiveFlash(() => props.value)
 </script>
 
 <style lang="sass">
