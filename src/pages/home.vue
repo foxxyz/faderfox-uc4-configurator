@@ -1,7 +1,63 @@
 <template>
+    <header>
+        <ul class="actions">
+            <li class="new">
+                <button
+                    type="button"
+                    @click="newConfig"
+                    title="Start New Empty Config"
+                >
+                    <span>New</span>
+                </button>
+            </li>
+            <li class="load">
+                <button
+                    type="button"
+                    @click="pickFile"
+                    title="Load Config from File"
+                >
+                    <span>Load</span>
+                </button>
+            </li>
+            <li class="save">
+                <button
+                    type="button"
+                    @click="saveConfig"
+                    title="Save Config to File"
+                >
+                    <span>Save</span>
+                </button>
+            </li>
+        </ul>
+        <h1>Faderfox UC4 Configurator</h1>
+        <aside :class="['monitor', { active: showMIDIMonitor }]">
+            <h3 @click="toggleMIDIMonitor">
+                MIDI Monitor
+            </h3>
+        </aside>
+        <transition name="slide">
+            <midi-monitor v-show="showMIDIMonitor" />
+        </transition>
+        <aside class="other-devices learn" v-if="otherDevices.length">
+            <h3>
+                Other Devices
+            </h3>
+            <ul>
+                <li v-for="device of otherDevices" :key="device.id">
+                    <span class="name">{{ device.name }}</span>
+                    <button
+                        type="button"
+                        :class="{ active: learnMode === device.id }"
+                        @click="toggleLearn(device.id)"
+                    >
+                        {{ learnMode === device.id ? 'Disconnect' : 'Learn' }}
+                    </button>
+                </li>
+            </ul>
+        </aside>
+    </header>
     <main>
         <div class="wrapper">
-            <h1>Faderfox UC4 Configurator</h1>
             <notifier ref="notifications" />
             <div :class="['device', waitingForMode, { waitingForMode }]">
                 <div class="section encoders">
@@ -146,12 +202,12 @@
             <div class="actions">
                 <ul>
                     <li>
-                        <button type="button" @click="enterMode('load')" :disabled="activeInstructions.length">
+                        <button class="read" type="button" @click="enterMode('load')" :disabled="activeInstructions.length">
                             Read from Device
                         </button>
                     </li>
                     <li>
-                        <button type="button" @click="enterMode('send')" :disabled="activeInstructions.length">
+                        <button class="write" type="button" @click="enterMode('send')" :disabled="activeInstructions.length">
                             Write to Device
                         </button>
                         <p class="warning" v-if="pendingChanges">
@@ -170,31 +226,6 @@
                 :style="line.style"
             />
         </ol>
-        <aside :class="['monitor', { active: showMIDIMonitor }]">
-            <h3 @click="toggleMIDIMonitor">
-                {{ showMIDIMonitor ? 'Hide' : 'Show' }} MIDI Monitor
-            </h3>
-            <transition name="slide">
-                <midi-monitor v-show="showMIDIMonitor" />
-            </transition>
-        </aside>
-        <aside class="other-devices learn" v-if="otherDevices.length">
-            <h3>
-                Other Devices
-            </h3>
-            <ul>
-                <li v-for="device of otherDevices" :key="device.id">
-                    <span class="name">{{ device.name }}</span>
-                    <button
-                        type="button"
-                        :class="{ active: learnMode === device.id }"
-                        @click="toggleLearn(device.id)"
-                    >
-                        {{ learnMode === device.id ? 'Disconnect' : 'Learn' }}
-                    </button>
-                </li>
-            </ul>
-        </aside>
         <transition name="appear">
             <edit-window
                 v-if="showEditWindow"
@@ -215,6 +246,8 @@ import horizontalFader from '@/components/horizontal-fader.vue'
 import midiMonitor from '@/components/midi-monitor.vue'
 import notifier from '@/components/notifier.vue'
 import verticalFader from '@/components/vertical-fader.vue'
+
+import { useFilePicker, offerDownload } from '@/composables/file-handling.js'
 
 import DEFAULT_CONFIG from '@/data/empty-config.json'
 import { decodeMIDI, formatMIDI } from '@/util/format.js'
@@ -257,17 +290,26 @@ function hasChanged(control) {
     }
 }
 function getControlParameters(control) {
-    return [control.cc, control.channel, control.type, control.display, control.mode, control.min, control.max]
+    return {
+        cc: control.cc,
+        channel: control.channel,
+        type: control.type,
+        display: control.display,
+        mode: control.mode,
+        min: control.min,
+        max: control.max,
+    }
 }
 function groupParameters(group) {
-    return [
-        group.name,
-        group.faders.map(getControlParameters),
-        group.encoders.map(getControlParameters),
-        group.encoderBtns.map(getControlParameters),
-        group.greenBtns.map(getControlParameters),
-        getControlParameters(group.xFader),
-    ]
+    return {
+        index: group.index,
+        name: group.name,
+        faders: group.faders.map(getControlParameters),
+        encoders: group.encoders.map(getControlParameters),
+        encoderBtns: group.encoderBtns.map(getControlParameters),
+        greenBtns: group.greenBtns.map(getControlParameters),
+        xFader: getControlParameters(group.xFader),
+    }
 }
 const pendingChanges = computed(() => groups.value.some(g => groupHasChanges(g)))
 const controlParameters = computed(() => groups.value.map(g => groupParameters(g)))
@@ -461,53 +503,81 @@ onBeforeUnmount(() => {
 
 controllers.addEventListener('connect', onConnect)
 onBeforeUnmount(() => controllers.removeEventListener('connect', onConnect))
+
+// Pick file for import
+const { pickFile } = useFilePicker({
+    accept: '.json, application/json',
+    onPick(data) {
+        // TODO: Validate that this is a valid config
+        groups.value = addTracking(JSON.parse(data))
+        currentGroup.value = groups.value[0]
+        notifications.value.notify({ text: 'Config successfully loaded from disk' })
+    }
+})
+
+function newConfig() {
+    groups.value = addTracking(DEFAULT_CONFIG)
+    currentGroup.value = groups.value[0]
+    notifications.value.notify({ text: 'Cleared Current Config' })
+}
+
+function saveConfig() {
+    const jsonConfig = JSON.stringify(controlParameters.value, null, 4)
+    const jsonBlob = new Blob([jsonConfig], { type: 'application/json' })
+    offerDownload(jsonBlob, 'uc4-config.json')
+    notifications.value.notify({ text: 'Config saved successfully' })
+}
 </script>
 
 <style lang="sass">
-main
-    padding: 1rem
+@use '@/styles/common.sass'
+
+header
     display: flex
-    flex-direction: column
-    align-items: center
-    @media(min-width: 700px)
-        padding: 2rem
-
-    > div > .actions
-        padding: 2rem
+    justify-content: space-between
+    background: #333
+    position: relative
+    h1
+        font-size: 1.2em
+        text-align: center
+        position: absolute
+        left: 50%
+        transform: translate(-50%, 0)
+        font-family: Audiowide
+        text-transform: uppercase
+        @media(min-width: 700px)
+            font-size: 1.5em
+    input[type=file]
+        display: none
+    .actions
+        list-style: none
+        display: flex
         button
-            width: 12em
-            margin-bottom: 1em
-        li
-            position: relative
-        ul
-            display: flex
-            list-style: none
-            justify-content: space-around
-        .warning
-            position: absolute
-            left: 50%
-            top: -1em
-            white-space: nowrap
-            transform: translate(-50%, -50%)
-            background: #c44
-            font-size: .8em
-            padding: .2em 1em
-            border-radius: .5em
-
-    aside.monitor
+            @extend %icon-button
+            border-right: solid 1px #666
+            color: #fff8
+            height: 100%
+            &:hover
+                color: #fff
+        .load button:before
+            content: '\f07c'
+        .new button:before
+            content: '\f15b'
+        .save button:before
+            content: '\f0c7'
+    .midi-monitor
         position: absolute
         right: 0
-        top: 0
-        overflow-x: hidden
-        font-size: .8em
+        top: 100%
         z-index: 30
+        font-size: .8em
+    aside.monitor
         &.active
             h3:after
                 transform: rotate(90deg)
         h3
             padding: .5rem 1rem
             cursor: pointer
-            background: #88888844
             font-family: Audiowide
             text-transform: uppercase
             font-size: .8em
@@ -521,11 +591,10 @@ main
                 transition: transform .5s
             &:hover
                 background: #88888866
-
     aside.other-devices
         position: absolute
         left: 0
-        top: 0
+        top: 100%
         font-size: .8em
         background: #88888844
         padding: 1em
@@ -542,14 +611,46 @@ main
         ul
             list-style: none
 
-    h1
-        font-size: 1.2em
-        margin-bottom: .5em
-        text-align: center
-        font-family: Audiowide
-        text-transform: uppercase
-        @media(min-width: 700px)
-            font-size: 1.5em
+main
+    padding: 1rem
+    display: flex
+    flex-direction: column
+    align-items: center
+    @media(min-width: 700px)
+        padding: 2rem
+
+    > div > .actions
+        padding: 2rem
+        button
+            width: 14em
+            margin-bottom: 1em
+            display: flex
+            justify-content: center
+            gap: .5em
+            align-items: center
+            &:before
+                font-family: FontAwesome
+                -webkit-font-smoothing: antialiased
+            &.read:before
+                content: '\f019'
+            &.write:before
+                content: '\f093'
+        li
+            position: relative
+        ul
+            display: flex
+            list-style: none
+            justify-content: space-around
+        .warning
+            position: absolute
+            left: 50%
+            top: -1em
+            white-space: nowrap
+            transform: translate(-50%, -50%)
+            background: #c44
+            font-size: .8em
+            padding: .2em 1em
+            border-radius: .5em
 
     p
         text-align: center
@@ -812,8 +913,8 @@ main
         opacity: 0
         transform: scale(0.8) translate(0, -1em)
 
-    .slide-enter-active, .slide-leave-active
-        transition: all .3s ease-in-out
-    .slide-enter-from, .slide-leave-to
-        transform: translate(30em, 0)
+.slide-enter-active, .slide-leave-active
+    transition: all .3s ease-in-out
+.slide-enter-from, .slide-leave-to
+    transform: translate(30em, 0)
 </style>

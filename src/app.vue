@@ -36,6 +36,7 @@ body
     font-family: Roboto, sans-serif
     position: relative
     padding-bottom: 2rem
+    overflow-x: hidden
 
 button
     background: linear-gradient(to bottom, #222, #444)
@@ -87,5 +88,9 @@ input, select
 
 select
     cursor: pointer
+
+@font-face
+    font-family: 'FontAwesome'
+    src: url(./fonts/fa-solid-900.woff2) format('woff2')
 
 </style>
