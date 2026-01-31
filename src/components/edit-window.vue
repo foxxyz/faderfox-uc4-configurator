@@ -4,14 +4,14 @@
             <h3>Control Details</h3>
             <div class="channel">
                 <label for="channel-select">Channel</label>
-                <channel-select id="channel-select" v-model="parameters.channel" />
+                <channel-select id="channel-select" v-model="commonChannel" />
             </div>
             <div class="cc">
                 <label for="cc">Control Code</label>
                 <input
                     name="cc"
                     title="Control Code"
-                    v-model="parameters.cc"
+                    v-model="commonCC"
                     type="number"
                     min="0"
                     max="127"
@@ -23,7 +23,7 @@
                     type="number"
                     min="0"
                     max="127"
-                    v-model="parameters.min"
+                    v-model="commonMin"
                     size="2"
                 >
             </div>
@@ -33,15 +33,18 @@
                     type="number"
                     min="0"
                     max="127"
-                    v-model="parameters.max"
+                    v-model="commonMax"
                     size="2"
                 >
             </div>
             <div class="type">
                 <label>Control Type</label>
-                <select v-model="parameters.type">
+                <select
+                    v-model="commonControlType"
+                    :disabled="!commonType"
+                >
                     <option
-                        v-for="typeOption of TYPES[type]"
+                        v-for="typeOption of TYPES[commonType]"
                         :key="typeOption.label"
                         :value="typeOption.value"
                         :title="typeOption.name"
@@ -52,9 +55,12 @@
             </div>
             <div class="mode">
                 <label>Control Mode</label>
-                <select v-model="parameters.mode">
+                <select
+                    v-model="commonMode"
+                    :disabled="!commonType"
+                >
                     <option
-                        v-for="mode of MODES[type]"
+                        v-for="mode of MODES[commonType]"
                         :key="mode.label"
                         :value="mode.value"
                         :title="mode.name"
@@ -65,9 +71,12 @@
             </div>
             <div class="scale">
                 <label>Display Scale</label>
-                <select v-model="parameters.display">
+                <select
+                    v-model="commonScale"
+                    :disabled="!commonType"
+                >
                     <option
-                        v-for="scale of SCALES[type]"
+                        v-for="scale of SCALES[commonType]"
                         :key="scale.label"
                         :value="scale.value"
                         :title="scale.name"
@@ -88,6 +97,8 @@
 </template>
 
 <script setup>
+import { computed, ref } from 'vue'
+
 import channelSelect from './channel-select.vue'
 
 const TYPES = {
@@ -152,15 +163,38 @@ const SCALES = {
 
 const emit = defineEmits(['close'])
 
-defineProps({
-    parameters: {
-        type: Object,
-        default: () => ({})
-    },
-    type: {
-        type: String,
-        default: null
+const props = defineProps({
+    controls: {
+        type: Array,
+        default: () => [],
     }
+})
+
+function multiModel(key) {
+    return computed({
+        get() {
+            const firstValue = props.controls[0]?.parameters[key]
+            if (props.controls.some(c => c.parameters[key] !== firstValue)) return null
+            return firstValue
+        },
+        set(value) {
+            for (const control of props.controls) control.parameters[key] = value
+        }
+    })
+}
+
+const commonChannel = multiModel('channel')
+const commonCC = multiModel('cc')
+const commonMin = multiModel('min')
+const commonMax = multiModel('max')
+const commonControlType = multiModel('type')
+const commonMode = multiModel('mode')
+const commonScale = multiModel('display')
+
+const commonType = computed(() => {
+    const firstType = props.controls[0]?.type
+    if (props.controls.some(c => c.type !== firstType)) return null
+    return firstType
 })
 
 </script>

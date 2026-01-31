@@ -89,18 +89,20 @@
                         :key="idx"
                     >
                         <encoder-knob
-                            :class="{ modified: hasChanged(encoder), editing: editSelection.parameters == encoder }"
+                            :class="{ modified: hasChanged(encoder), editing: editSelection.some(c => c.parameters === encoder) }"
                             v-bind="encoder"
-                            @mousedown="bindEditWindow(encoder, 'encoder')"
+                            @pointerdown="select(encoder, 'encoder', $event)"
+                            @contextmenu.ctrl.prevent
                             v-model:cc="encoder.cc"
                             v-model:min="encoder.min"
                             v-model:max="encoder.max"
                             v-model:channel="encoder.channel"
                         />
                         <push-button
-                            :class="{ modified: hasChanged(button), editing: editSelection.parameters == button }"
+                            :class="{ modified: hasChanged(button), editing: editSelection.some(c => c.parameters === button) }"
                             :pressed="button.value === button.max"
-                            @mousedown="bindEditWindow(button, 'button')"
+                            @pointerdown="select(button, 'button', $event)"
+                            @contextmenu.ctrl.prevent
                             v-model:channel="button.channel"
                             v-model:cc="button.cc"
                         />
@@ -110,10 +112,11 @@
                     <div class="faders">
                         <vertical-fader
                             v-for="(fader, idx) of currentGroup.faders"
-                            :class="{ modified: hasChanged(fader), editing: editSelection.parameters == fader }"
+                            :class="{ modified: hasChanged(fader), editing: editSelection.some(c => c.parameters === fader) }"
                             :key="idx"
                             v-bind="fader"
-                            @mousedown="bindEditWindow(fader, 'fader')"
+                            @pointerdown="select(fader, 'fader', $event)"
+                            @contextmenu.ctrl.prevent
                             v-model:cc="fader.cc"
                             v-model:min="fader.min"
                             v-model:max="fader.max"
@@ -127,8 +130,9 @@
                             :disabled="true"
                         />
                         <horizontal-fader
-                            :class="{ modified: hasChanged(currentGroup.xFader), editing: editSelection.parameters == currentGroup.xFader }"
-                            @mousedown="bindEditWindow(currentGroup.xFader, 'fader')"
+                            :class="{ modified: hasChanged(currentGroup.xFader), editing: editSelection.some(c => c.parameters === currentGroup.xFader) }"
+                            @pointerdown="select(currentGroup.xFader, 'fader', $event)"
+                            @contextmenu.ctrl.prevent
                             v-bind="currentGroup.xFader"
                             v-model:cc="currentGroup.xFader.cc"
                             v-model:min="currentGroup.xFader.min"
@@ -145,8 +149,9 @@
                         <push-button
                             v-for="(button, idx) of currentGroup.greenBtns"
                             :key="idx"
-                            :class="{ modified: hasChanged(button), editing: editSelection.parameters == button }"
-                            @mousedown="bindEditWindow(button, 'button')"
+                            :class="{ modified: hasChanged(button), editing: editSelection.some(c => c.parameters === button) }"
+                            @pointerdown="select(button, 'button', $event)"
+                            @contextmenu.ctrl.prevent
                             color="#0a6"
                             :pressed="button.value === button.max"
                             v-model:cc="button.cc"
@@ -229,7 +234,7 @@
         <transition name="appear">
             <edit-window
                 v-if="showEditWindow"
-                v-bind="editSelection"
+                :controls="editSelection"
                 @close="toggleEditWindow(false)"
             />
         </transition>
@@ -347,13 +352,31 @@ function toggleLearn(deviceID) {
 /* Advanced Editing Window */
 
 const showEditWindow = ref(false)
-const editSelection = ref({ parameters: {} })
-function bindEditWindow(parameters, type) {
-    editSelection.value = { parameters, type }
+const editSelection = ref([])
+function select(parameters, type, e) {
+    e.stopPropagation()
+    // Multiple select
+    if (e.shiftKey || e.ctrlKey) {
+        const exists = editSelection.value.findIndex(c => c.parameters === parameters && c.type === type)
+        if (exists > -1) {
+            editSelection.value.splice(exists, 1)
+        } else {
+            editSelection.value.push({ parameters, type })
+        }
+    // Single select
+    } else {
+        editSelection.value = [{ parameters, type }]
+    }
 }
 function toggleEditWindow(enabled) {
     showEditWindow.value = enabled !== undefined ? enabled : !showEditWindow.value
 }
+function clearSelection(e) {
+    if (e.target.tagName === 'BUTTON') return
+    editSelection.value = []
+}
+window.addEventListener('pointerdown', clearSelection)
+onBeforeUnmount(() => window.removeEventListener('pointerdown', clearSelection))
 
 function findInOtherGroups({ channel, cc }, sections = []) {
     for (const group of groups.value) {
@@ -719,11 +742,11 @@ main
                 .handle input
                     opacity: 1
             &.editing
-                outline: solid 1px #ccc6
+                outline: solid 2px #26aa3C
             &.modified
                 outline: dashed 2px red
                 &.editing
-                    outline-color: #fff
+                    outline-color: #26aa3C
             input, select
                 opacity: 0
                 text-align: center
