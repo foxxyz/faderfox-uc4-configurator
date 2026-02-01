@@ -71,6 +71,8 @@ controller.addEventListener('action', ({ action, args: [id, name, data] }) => {
             animation: highlight 1s
             animation-delay: 2s
             animation-fill-mode: both
+            &:first-child
+                color: #fff !important
 
     .format-selector
         margin-bottom: 1rem
