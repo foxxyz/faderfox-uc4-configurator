@@ -39,7 +39,7 @@ body
     overflow-x: hidden
 
 button
-    background: linear-gradient(to bottom, #222, #444)
+    background: #333
     border: solid 2px #444
     padding: .5rem 1rem
     color: inherit
@@ -49,7 +49,7 @@ button
         opacity: .5
         color: #888
     &:not([disabled]):hover
-        background: linear-gradient(to bottom, #444, #888)
+        background: linear-gradient(to bottom, #222, #444)
 
 footer
     font-size: .8em
