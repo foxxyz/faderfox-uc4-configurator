@@ -195,14 +195,6 @@
                         </li>
                     </ul>
                 </div>
-                <button
-                    type="button"
-                    class="advanced-toggle"
-                    title="Show Advanced Options"
-                    @click="toggleEditWindow()"
-                >
-                    ⚙
-                </button>
             </div>
             <div class="actions">
                 <ul>
@@ -236,6 +228,7 @@
                 v-if="showEditWindow"
                 :controls="editSelection"
                 @close="toggleEditWindow(false)"
+                v-model:position="pos"
             />
         </transition>
     </main>
@@ -350,7 +343,7 @@ function toggleLearn(deviceID) {
 }
 
 /* Advanced Editing Window */
-
+const pos = ref([0, 0])
 const showEditWindow = ref(false)
 const editSelection = ref([])
 function select(parameters, type, e) {
@@ -367,13 +360,21 @@ function select(parameters, type, e) {
     } else {
         editSelection.value = [{ parameters, type }]
     }
+    // Show edit window near by
+    const nearestControl = e.target.closest('.control')
+    const controlDims = nearestControl.getBoundingClientRect()
+    pos.value[0] = controlDims.x + controlDims.width + 20
+    pos.value[1] = controlDims.y
+    toggleEditWindow(editSelection.value.length > 0)
 }
 function toggleEditWindow(enabled) {
     showEditWindow.value = enabled !== undefined ? enabled : !showEditWindow.value
 }
 function clearSelection(e) {
-    if (e.target.tagName === 'BUTTON') return
+    // Don't clear if using the edit window
+    if (e.target.closest('.edit-window')) return
     editSelection.value = []
+    toggleEditWindow(false)
 }
 window.addEventListener('pointerdown', clearSelection)
 onBeforeUnmount(() => window.removeEventListener('pointerdown', clearSelection))
@@ -679,25 +680,6 @@ main
         text-align: center
         margin-bottom: 1em
 
-    .advanced-toggle
-        position: absolute
-        top: .5rem
-        right: .5rem
-        background: transparent
-        color: #444
-        border: none
-        font-size: 2em
-        padding: 0
-        width: 1em
-        height: 1em
-        border-radius: 0
-        display: flex
-        justify-content: center
-        align-items: center
-        &:hover
-            color: white
-            background: transparent
-
     .cross-fader
         display: flex
         justify-content: space-between
@@ -744,9 +726,9 @@ main
             &.editing
                 outline: solid 2px #26aa3C
             &.modified
-                outline: dashed 2px red
+                outline: dashed 1px red
                 &.editing
-                    outline-color: #26aa3C
+                    outline: dashed 2px #26aa3C
             input, select
                 opacity: 0
                 text-align: center
@@ -768,8 +750,9 @@ main
 
     .edit-window
         position: absolute
-        right: 2rem
-        top: 4rem
+        left: 0
+        top: 0
+        z-index: 10
 
     .encoders
         display: flex
@@ -854,6 +837,7 @@ main
             font-weight: bold
         li
             position: absolute
+            z-index: 20
             top: -1em
             left: 2em
             padding: .5em 1em
@@ -897,6 +881,7 @@ main
 
     .status
         position: absolute
+        z-index: 20
         padding: 1em 3em
         background: linear-gradient(to bottom, #03120E, #262626, #262626, #03120E)
         background-size: 100% 50%
@@ -930,9 +915,9 @@ main
         100%
             background-position: 0 -100%
 
-    .appear-enter-active, .appear-leave-active
+    .appear-enter-active form, .appear-leave-active form
         transition: all .3s ease-in-out
-    .appear-enter-from, .appear-leave-to
+    .appear-enter-from form, .appear-leave-to form
         opacity: 0
         transform: scale(0.8) translate(0, -1em)
 

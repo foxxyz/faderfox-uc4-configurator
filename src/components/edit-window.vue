@@ -1,7 +1,9 @@
 <template>
-    <div class="edit-window" draggable="true">
+    <div :class="['edit-window', { dragging }]" :style="style">
         <form>
-            <h3>Control Details</h3>
+            <h3 ref="header">
+                Control Details
+            </h3>
             <div class="channel">
                 <label for="channel-select">Channel</label>
                 <channel-select id="channel-select" v-model="commonChannel" />
@@ -85,19 +87,20 @@
                     </option>
                 </select>
             </div>
+            <button
+                type="button"
+                class="close"
+                @click="emit('close')"
+            >
+                ✕
+            </button>
         </form>
-        <button
-            type="button"
-            class="close"
-            @click="emit('close')"
-        >
-            ✕
-        </button>
     </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, useTemplateRef } from 'vue'
+import draggable from '@/composables/draggable.js'
 
 import channelSelect from './channel-select.vue'
 
@@ -170,6 +173,8 @@ const props = defineProps({
     }
 })
 
+const pos = defineModel('position', { type: Array })
+
 function multiModel(key) {
     return computed({
         get() {
@@ -197,12 +202,23 @@ const commonType = computed(() => {
     return firstType
 })
 
+const header = useTemplateRef('header')
+const { dragging } = draggable(header, {
+    onDrag([dx, dy]) {
+        pos.value[0] += dx
+        pos.value[1] += dy
+    }
+})
+
+const style = computed(() => ({
+    transform: `translate(${pos.value[0]}px, ${pos.value[1]}px)`,
+}))
 </script>
 
 <style lang="sass">
 .edit-window
-    background: #333
-    border-radius: .5rem
+    &:not(.dragging)
+        transition: transform .3s ease-in-out
 
     .close
         position: absolute
@@ -223,11 +239,15 @@ const commonType = computed(() => {
         font-size: .7em
         margin-bottom: 1em
         text-align: center
+        cursor: move
+        user-select: none
 
     form
+        background: #333
         border: solid 2px #ccc
         border-radius: .5rem
         padding: .5rem 1rem 1rem
+        box-shadow: .3em .3em .2em rgba(0, 0, 0, .3)
 
         > div
             display: flex
