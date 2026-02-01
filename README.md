@@ -3,7 +3,11 @@ Faderfox UC4 Configurator
 
 Interactive WebMIDI Configurator for [FaderFox UC4 MIDI Controllers](https://faderfox.de/uc4.html)
 
+[![UC4 Configurator Interface](/docs/screenshot.png?raw=true)](https://uc4.ivo.tech/)
+
 Try it out: https://uc4.ivo.tech/
+
+_Note: Only supports a single configuration (I.E. 8 groups). If it doesn't read, ensure you're on configuration `SE01`_
 
 _Note: This is an unofficial application and not endorsed by or affiliated with Faderfox._
 
