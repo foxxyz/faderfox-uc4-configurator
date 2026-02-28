@@ -2,45 +2,27 @@
     <div :class="['horizontal-fader control', { active }]">
         <div class="bg" />
         <div class="track" />
-        <channel-select
-            v-model="channel"
-        />
-        <input
-            class="min"
-            title="Minimum Value"
-            type="number"
-            v-model="min"
-        >
+        <span class="channel">CH{{ channel }}</span>
         <div class="handle" :style="{ left }">
-            <input
-                class="cc"
-                name="cc"
-                title="Control Code"
-                type="number"
-                v-model="cc"
-            >
+            <span class="cc">cc{{ cc }}</span>
         </div>
-        <input
-            class="max"
-            title="Maximum Value"
-            type="number"
-            v-model="max"
-        >
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-import channelSelect from '@/components/channel-select.vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
 
-const cc = defineModel('cc', { type: Number })
-const min = defineModel('min', { type: Number })
-const max = defineModel('max', { type: Number })
-const channel = defineModel('channel', { type: Number })
-
 const props = defineProps({
+    cc: {
+        type: Number,
+        default: 0,
+    },
+    channel: {
+        type: Number,
+        default: 1,
+    },
     value: {
         type: Number,
         default: 0
@@ -82,22 +64,16 @@ const { active } = useActiveFlash(() => props.value)
         align-items: center
         box-shadow: 0 0 .5em rgba(0, 0, 0, .8)
         background: linear-gradient(to right, #333, #777 47%, #fff 47%, #fff 53%, #555 53%, #333)
-        input
+        span
             background: #000 !important
-    .min, .max, .channel-select
+            padding: .4em
+    .channel
         position: absolute
         top: 50%
         z-index: 2
         transform: translate(-50%, -50%)
-        &.channel-select
-            left: 50%
-            top: -2em
-        &.min
-            left: -2em
-            text-align: right
-        &.max
-            right: -5.5em
-            text-align: left
+        left: 50%
+        top: -2em
     .track
         position: relative
         z-index: 1
