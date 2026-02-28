@@ -2,45 +2,27 @@
     <div :class="['vertical-fader control', { active }]">
         <div class="bg" />
         <div class="track" />
-        <channel-select
-            v-model="channel"
-        />
-        <input
-            class="max"
-            type="number"
-            title="Maximum Value"
-            v-model="max"
-        >
+        <span class="channel">CH{{ channel }}</span>
         <div class="handle" :style="{ bottom }">
-            <input
-                class="cc"
-                name="cc"
-                type="number"
-                title="Control Code"
-                v-model="cc"
-            >
+            <span class="cc">cc{{ cc }}</span>
         </div>
-        <input
-            class="min"
-            type="number"
-            title="Minimum Value"
-            v-model="min"
-        >
     </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 
-import channelSelect from '@/components/channel-select.vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
 
-const cc = defineModel('cc', { type: Number })
-const min = defineModel('min', { type: Number })
-const max = defineModel('max', { type: Number })
-const channel = defineModel('channel', { type: Number })
-
 const props = defineProps({
+    cc: {
+        type: Number,
+        default: 0,
+    },
+    channel: {
+        type: Number,
+        default: 1,
+    },
     value: {
         type: Number,
         default: 0
@@ -82,19 +64,15 @@ const AMOUNT_PER_UNIT = 86 / 127
         align-items: center
         box-shadow: 0 0 .5em rgba(0, 0, 0, .8)
         background: linear-gradient(to bottom, #333, #777 47%, #fff 47%, #fff 53%, #555 53%, #333)
-        input
+        span
             background: #000 !important
-    .min, .max, .channel-select
+            padding: .4em
+    .channel
         position: absolute
         left: 50%
         z-index: 2
         transform: translate(-50%, -50%)
-        &.channel-select
-            top: -3em
-        &.min
-            bottom: -3em
-        &.max
-            top: -1.5em
+        top: -1em
     .track
         position: relative
         z-index: 1

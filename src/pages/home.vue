@@ -540,7 +540,7 @@ const { pickFile } = useFilePicker({
 })
 
 function newConfig() {
-    groups.value = addTracking(DEFAULT_CONFIG)
+    groups.value = addTracking(structuredClone(DEFAULT_CONFIG))
     currentGroup.value = groups.value[0]
     notifications.value.notify({ text: 'Cleared Current Config' })
 }
@@ -717,11 +717,11 @@ main
                 &::-webkit-inner-spin-button, &::-webkit-outer-spin-button
                     -webkit-appearance: none
         .control
-            &:hover, &.active, &:has(*:focus)
-                input, select
-                    transition: none
-                    opacity: .5
-                .handle input
+            user-select: none
+            &:hover
+                outline: solid #fff4 1px
+                cursor: pointer
+                span
                     opacity: 1
             &.editing
                 outline: solid 2px #26aa3C
@@ -729,20 +729,10 @@ main
                 outline: dashed 1px red
                 &.editing
                     outline: dashed 2px #26aa3C
-            input, select
+            span
                 opacity: 0
-                text-align: center
-                transition: all .5s
-                border-color: transparent
-                background: transparent
                 font-size: .7em
-                &:hover
-                    border-color: #666
-                    background-color: #222
-                    opacity: 1
-                    transition: none
-            select
-                padding: .2em 0
+                color: #ccc
         .section
             border: solid 2px #ccc
             border-radius: .5rem
@@ -796,6 +786,9 @@ main
         gap: .5rem
         > *
             flex-grow: 1
+        span
+            color: black !important
+            display: block
         @media(min-width: 700px)
             gap: 1rem
 
