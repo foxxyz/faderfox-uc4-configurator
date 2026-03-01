@@ -71,7 +71,7 @@
                                 :key="idx"
                                 :value="idx"
                             >
-                                Group {{ idx + 1 }}
+                                Group {{ idx + 1 }} ({{ group.name }})
                             </option>
                         </select>
                         <input
@@ -789,6 +789,8 @@ main
         span
             color: black !important
             display: block
+        .cc
+            font-size: .6em !important
         @media(min-width: 700px)
             gap: 1rem
 
@@ -816,7 +818,9 @@ main
             max-width: 6em
         select
             padding-right: 0
-            width: 6em
+            width: 1em
+            background: #555
+            position: relative
 
     .instructions
         list-style: none
