@@ -12,8 +12,8 @@
         </ul>
         <ol>
             <li
-                v-for="message of log"
-                :key="message.time"
+                v-for="(message, idx) of log"
+                :key="idx"
             >
                 {{ format(message) }}
             </li>

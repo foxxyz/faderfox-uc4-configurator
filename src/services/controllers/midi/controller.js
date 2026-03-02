@@ -54,4 +54,7 @@ export class MIDIController extends EventTarget {
         access.addEventListener('statechange', ({ port }) => this.processPort(port))
         this.discover(access)
     }
+    send() {
+        console.log(this.devices)
+    }
 }

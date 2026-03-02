@@ -35,4 +35,12 @@ export class MIDIDevice extends BaseController {
         }
         return data
     }
+    send({ type = 'CC', channel, cc, value }) {
+        const msg = new Uint8Array(3)
+        msg[0] = MIDI_COMMANDS[type] + channel - 1
+        msg[1] = cc
+        msg[2] = value
+        this.emit({ action: 'log', args: [this.id, this.name, msg] })
+        this.output.send(msg)
+    }
 }

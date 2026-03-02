@@ -1,5 +1,5 @@
 <template>
-    <div :class="['encoder-knob control', { active }]">
+    <div :class="['encoder-knob control', { active }]" ref="root" @mousedown="dragStart">
         <div class="knob" :style="{ transform: `rotate(${HOME_POSITION + value * DEG_PER_UNIT}deg)` }" />
         <span class="channel">CH{{ channel }}</span>
         <span class="cc">cc{{ cc }}</span>
@@ -7,7 +7,10 @@
 </template>
 
 <script setup>
+import { useTemplateRef } from 'vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
+import draggable from '@/composables/draggable.js'
+import { mod } from '@/util/math.js'
 
 const props = defineProps({
     cc: {
@@ -18,15 +21,29 @@ const props = defineProps({
         type: Number,
         default: 1,
     },
-    value: {
-        type: Number,
-        default: 0,
-    }
+})
+
+const value = defineModel('value', {
+    type: Number,
+    default: 0
 })
 
 // Encoder has 127 units per full revolution
 const DEG_PER_UNIT = 300 / 127
 const HOME_POSITION = -150
+
+const root = useTemplateRef('root')
+const { dragStart } = draggable(null, {
+    onDrag(_, pos) {
+        const dims = root.value.getBoundingClientRect()
+        const offset = [
+            pos[0] - (dims.left + dims.width / 2),
+            pos[1] - (dims.top + dims.height / 2)
+        ]
+        const angle = Math.atan2(offset[1], offset[0])
+        value.value = Math.max(0, Math.min(127, mod(angle / Math.PI * 180 - HOME_POSITION + 90, 360) / DEG_PER_UNIT))
+    }
+})
 
 const { active } = useActiveFlash(() => props.value)
 </script>
