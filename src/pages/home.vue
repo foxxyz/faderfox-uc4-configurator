@@ -28,6 +28,15 @@
                     <span>Save</span>
                 </button>
             </li>
+            <li :class="['playback', { active: playbackMode }]">
+                <button
+                    type="button"
+                    @click="togglePlaybackMode"
+                    title="Playback Mode (Emit MIDI events when touching controls)"
+                >
+                    <span>Playback Mode</span>
+                </button>
+            </li>
         </ul>
         <h1>Faderfox UC4 Configurator</h1>
         <aside :class="['monitor', { active: showMIDIMonitor }]">
@@ -59,7 +68,7 @@
     <main>
         <div class="wrapper">
             <notifier ref="notifications" />
-            <div :class="['device', waitingForMode, { waitingForMode }]">
+            <div :class="['device', waitingForMode, { waitingForMode, playbackMode }]">
                 <div class="section encoders">
                     <div class="group">
                         <select
@@ -93,18 +102,16 @@
                             v-bind="encoder"
                             @pointerdown="select(encoder, 'encoder', $event)"
                             @contextmenu.ctrl.prevent
-                            v-model:cc="encoder.cc"
-                            v-model:min="encoder.min"
-                            v-model:max="encoder.max"
-                            v-model:channel="encoder.channel"
+                            :value="((encoder.value || 0) - encoder.min) / (encoder.max - encoder.min)"
+                            @update:value="setControlValue(encoder, 'encoder', $event)"
                         />
                         <push-button
                             :class="{ modified: hasChanged(button), editing: editSelection.some(c => c.parameters === button) }"
                             :pressed="button.value === button.max"
                             @pointerdown="select(button, 'button', $event)"
                             @contextmenu.ctrl.prevent
-                            v-model:channel="button.channel"
-                            v-model:cc="button.cc"
+                            :value="button.value === button.max ? 1 : 0"
+                            @update:value="setControlValue(button, 'button', $event)"
                         />
                     </div>
                 </div>
@@ -115,12 +122,10 @@
                             :class="{ modified: hasChanged(fader), editing: editSelection.some(c => c.parameters === fader) }"
                             :key="idx"
                             v-bind="fader"
+                            :value="((fader.value || 0) - fader.min) / (fader.max - fader.min)"
                             @pointerdown="select(fader, 'fader', $event)"
                             @contextmenu.ctrl.prevent
-                            v-model:cc="fader.cc"
-                            v-model:min="fader.min"
-                            v-model:max="fader.max"
-                            v-model:channel="fader.channel"
+                            @update:value="setControlValue(fader, 'fader', $event)"
                         />
                     </div>
                     <div class="cross-fader">
@@ -134,10 +139,8 @@
                             @pointerdown="select(currentGroup.xFader, 'fader', $event)"
                             @contextmenu.ctrl.prevent
                             v-bind="currentGroup.xFader"
-                            v-model:cc="currentGroup.xFader.cc"
-                            v-model:min="currentGroup.xFader.min"
-                            v-model:max="currentGroup.xFader.max"
-                            v-model:channel="currentGroup.xFader.channel"
+                            :value="((currentGroup.xFader.value || 0) - currentGroup.xFader.min) / (currentGroup.xFader.max - currentGroup.xFader.min)"
+                            @update:value="setControlValue(currentGroup.xFader, 'fader', $event)"
                         />
                         <push-button
                             class="shift"
@@ -153,9 +156,8 @@
                             @pointerdown="select(button, 'button', $event)"
                             @contextmenu.ctrl.prevent
                             color="#0a6"
-                            :pressed="button.value === button.max"
-                            v-model:cc="button.cc"
-                            v-model:channel="button.channel"
+                            :value="button.value === button.max ? 1 : 0"
+                            @update:value="setControlValue(button, 'button', $event)"
                         />
                     </div>
                 </div>
@@ -337,6 +339,11 @@ function toggleMIDIMonitor() {
     showMIDIMonitor.value = !showMIDIMonitor.value
 }
 
+const playbackMode = ref(true)
+function togglePlaybackMode() {
+    playbackMode.value = !playbackMode.value
+}
+
 const learnMode = ref('')
 function toggleLearn(deviceID) {
     learnMode.value = learnMode.value === deviceID ? null : deviceID
@@ -347,6 +354,8 @@ const pos = ref([0, 0])
 const showEditWindow = ref(false)
 const editSelection = ref([])
 function select(parameters, type, e) {
+    // Don't select when in playback mode
+    if (playbackMode.value) return
     e.stopPropagation()
     // Multiple select
     if (e.shiftKey || e.ctrlKey) {
@@ -424,6 +433,31 @@ function recv({ action, args }) {
         cancelMode()
         notifications.value.notify({ text: 'Configuration Received Successfully' })
     }
+}
+
+/* MIDI sending */
+
+function setControlValue(control, controlType, value) {
+    control.value = control.min + value * (control.max - control.min)
+    if (!playbackMode.value) return
+    // Determine type of MIDI message to send
+    let type = 'CC'
+    if (controlType === 'button') {
+        switch (control.type) {
+            case 0:
+                return
+            case 1:
+                type = control.value === control.max ? 'NOTE_ON' : 'NOTE_OFF'
+                break
+            case 3:
+                type = 'PC'
+                break
+            case 4:
+                type = 'AFTERTOUCH'
+                break
+        }
+    }
+    controllers.send({ ...control, type })
 }
 
 function changeGroup(e) {
@@ -585,6 +619,11 @@ header
                 color: #fff
         .load button:before
             content: '\f07c'
+        .playback
+            button:before
+                content: '\f04b'
+            &.active button
+                background: #050
         .new button:before
             content: '\f15b'
         .save button:before
@@ -699,6 +738,10 @@ main
         padding: .5rem
         border-radius: .5rem
         position: relative
+        &.playbackMode
+            .control
+                &:hover
+                    outline: none
         &.waitingForMode
             .faders, .horizontal-fader, .green-buttons, .encoder-wrapper, .group
                 transition: opacity .3s

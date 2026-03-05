@@ -1,20 +1,21 @@
 <template>
-    <div :class="['horizontal-fader control', { active }]">
+    <div :class="['horizontal-fader control', { active }]" ref="root">
         <div class="bg" />
         <div class="track" />
         <span class="channel">CH{{ channel }}</span>
-        <div class="handle" :style="{ left }">
+        <div class="handle" :style="{ left }" @mousedown="dragStart">
             <span class="cc">cc{{ cc }}</span>
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import { useActiveFlash } from '@/composables/active-flash.js'
+import draggable from '@/composables/draggable.js'
 
-const props = defineProps({
+defineProps({
     cc: {
         type: Number,
         default: 0,
@@ -23,18 +24,27 @@ const props = defineProps({
         type: Number,
         default: 1,
     },
-    value: {
-        type: Number,
-        default: 0
+})
+
+const value = defineModel('value', {
+    type: Number,
+    default: 0
+})
+
+const root = useTemplateRef('root')
+const { dragStart } = draggable(null, {
+    onDrag([x]) {
+        const dims = root.value.getBoundingClientRect()
+        value.value = Math.max(0, Math.min(1, value.value + x / dims.width * (100 / MOVEMENT_AREA)))
     }
 })
 
-const left = computed(() => `${props.value * AMOUNT_PER_UNIT}%`)
+const left = computed(() => `${value.value * MOVEMENT_AREA}%`)
 
-// Fader has 127 units from bottom to top
-const AMOUNT_PER_UNIT = 78 / 127
+// Right 11 and left 11 percent are padding
+const MOVEMENT_AREA = 78
 
-const { active } = useActiveFlash(() => props.value)
+const { active } = useActiveFlash(() => value.value)
 </script>
 
 <style lang="sass">

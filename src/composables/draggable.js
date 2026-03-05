@@ -33,10 +33,11 @@ export default function draggable(elRef, { button = 0, onDragStart, onDrag, onDr
         window.removeEventListener('mouseup', dragEnd)
     }
     onMounted(() => {
-        elRef.value.addEventListener('mousedown', dragStart)
+        if (elRef) elRef.value.addEventListener('mousedown', dragStart)
     })
 
     return {
-        dragging
+        dragging,
+        dragStart,
     }
 }

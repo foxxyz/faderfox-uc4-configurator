@@ -2,6 +2,8 @@
     <div
         :class="['push-button control', { active, disabled, pressed }]"
         :style="{ background: `radial-gradient(${color}, ${color} 60%, #111)` }"
+        @pointerdown="activate(true)"
+        @pointerup="activate(false)"
     >
         <span class="channel" v-if="!disabled">CH{{ channel }}</span>
         <span class="cc" v-if="!disabled">cc{{ cc }}</span>
@@ -9,9 +11,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
 
-const props = defineProps({
+defineProps({
     cc: {
         type: Number,
         default: 0,
@@ -27,14 +30,20 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false,
-    },
-    pressed: {
-        type: Boolean,
-        default: false
     }
 })
 
-const { active } = useActiveFlash(() => props.pressed)
+const value = defineModel('value', {
+    type: Number,
+    default: 0
+})
+
+const pressed = computed(() => value.value)
+const { active } = useActiveFlash(() => pressed.value)
+
+function activate(enabled) {
+    value.value = enabled ? 1 : 0
+}
 </script>
 
 <style lang="sass">

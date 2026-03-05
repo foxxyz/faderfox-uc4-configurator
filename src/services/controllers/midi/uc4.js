@@ -14,9 +14,9 @@ export class FaderfoxUC4 extends MIDIDevice {
     }
     load(config) {
         const buff = setupCodec.encode(config)
-        return this.send(buff)
+        return this.sendRaw(buff)
     }
-    send(buff) {
+    sendRaw(buff) {
         this.output.send(buff)
     }
 }
