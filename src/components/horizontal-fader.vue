@@ -35,14 +35,14 @@ const root = useTemplateRef('root')
 const { dragStart } = draggable(null, {
     onDrag([x]) {
         const dims = root.value.getBoundingClientRect()
-        value.value = Math.max(0, Math.min(127, value.value + x / dims.width * (100 / AMOUNT_PER_UNIT)))
+        value.value = Math.max(0, Math.min(1, value.value + x / dims.width * (100 / MOVEMENT_AREA)))
     }
 })
 
-const left = computed(() => `${value.value * AMOUNT_PER_UNIT}%`)
+const left = computed(() => `${value.value * MOVEMENT_AREA}%`)
 
-// Fader has 127 units from left to right
-const AMOUNT_PER_UNIT = 78 / 127
+// Right 11 and left 11 percent are padding
+const MOVEMENT_AREA = 78
 
 const { active } = useActiveFlash(() => value.value)
 </script>

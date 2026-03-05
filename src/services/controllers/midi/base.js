@@ -3,7 +3,11 @@ import { BaseController } from '../base.js'
 const MIDI_COMMANDS = {
     NOTE_OFF: 0x80,
     NOTE_ON: 0x90,
+    PKP: 0xa0,
     CC: 0xb0,
+    PC: 0xc0,
+    AFTERTOUCH: 0xd0,
+    PITCH_BEND: 0xe0,
     SYSEX: 0xf0,
 }
 
@@ -22,7 +26,7 @@ export class MIDIDevice extends BaseController {
         this.input.removeEventListener('midimessage', this.#receiver)
     }
     receive({ data }) {
-        this.emit({ action: 'log', args: [this.id, this.name, data] })
+        this.emit({ action: 'log', args: [this.id, this.name, data, 'in'] })
         const [command, eventCode, value] = data
         const commandType = command & 0xf0
         const channel = command & 0x0f
@@ -36,11 +40,16 @@ export class MIDIDevice extends BaseController {
         return data
     }
     send({ type = 'CC', channel, cc, value }) {
-        const msg = new Uint8Array(3)
+        const msg = new Uint8Array(type === 'PC' || type === 'AFTERTOUCH' ? 2 : 3)
         msg[0] = MIDI_COMMANDS[type] + channel - 1
-        msg[1] = cc
-        msg[2] = value
-        this.emit({ action: 'log', args: [this.id, this.name, msg] })
+        // Program changes are only 2 bytes
+        if (type === 'PC' || type === 'AFTERTOUCH') {
+            msg[1] = Math.round(value)
+        } else {
+            msg[1] = cc
+            msg[2] = Math.round(value)
+        }
+        this.emit({ action: 'log', args: [this.id, this.name, msg, 'out'] })
         this.output.send(msg)
     }
 }

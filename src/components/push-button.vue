@@ -14,7 +14,7 @@
 import { computed } from 'vue'
 import { useActiveFlash } from '@/composables/active-flash.js'
 
-const props = defineProps({
+defineProps({
     cc: {
         type: Number,
         default: 0,
@@ -30,15 +30,7 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false,
-    },
-    max: {
-        type: Number,
-        default: 127,
-    },
-    min: {
-        type: Number,
-        default: 0,
-    },
+    }
 })
 
 const value = defineModel('value', {
@@ -46,11 +38,11 @@ const value = defineModel('value', {
     default: 0
 })
 
-const pressed = computed(() => value.value === props.max)
+const pressed = computed(() => value.value)
 const { active } = useActiveFlash(() => pressed.value)
 
 function activate(enabled) {
-    value.value = enabled ? props.max : props.min
+    value.value = enabled ? 1 : 0
 }
 </script>
 

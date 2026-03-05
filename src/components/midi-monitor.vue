@@ -30,13 +30,13 @@ const controller = inject('$controllers')
 const MAX_LOG_SIZE = 50
 const log = reactive([])
 
-function format({ time, name, data }) {
+function format({ time, name, data, direction = 'in' }) {
     const seconds = (Math.round(time) / 1000).toFixed(2)
     if (activeFormat.value === 'hex') {
         const hex = [...data].map(b => b.toString(16).padStart(2, '0'))
         return `${seconds}: [${name}] [${hex.join(' ')}]`
     }
-    return `${seconds}: [${name}] ${formatMIDI(data)}`
+    return `${direction === 'in' ? '▼' : '▲'} ${seconds}: [${name}] ${formatMIDI(data)}`
 }
 
 const FORMATS = [
@@ -48,13 +48,13 @@ function setFormat(type) {
     activeFormat.value = type
 }
 
-controller.addEventListener('action', ({ action, args: [id, name, data] }) => {
+controller.addEventListener('action', ({ action, args: [id, name, data, direction] }) => {
     // Ignore non-log messages
     if (action !== 'log') return
     // Ignore sysex messages
     if ((data[0] & 0xf0) === 0xf0) return
     const time = performance.now()
-    log.unshift({ time, name, data })
+    log.unshift({ time, name, direction, data })
     log.splice(MAX_LOG_SIZE, log.length - MAX_LOG_SIZE)
 })
 </script>

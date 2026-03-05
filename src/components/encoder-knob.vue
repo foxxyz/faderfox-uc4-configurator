@@ -1,6 +1,6 @@
 <template>
     <div :class="['encoder-knob control', { active }]" ref="root" @mousedown="dragStart">
-        <div class="knob" :style="{ transform: `rotate(${HOME_POSITION + value * DEG_PER_UNIT}deg)` }" />
+        <div class="knob" :style="{ transform: `rotate(${HOME_POSITION + value * MOVEMENT_RANGE}deg)` }" />
         <span class="channel">CH{{ channel }}</span>
         <span class="cc">cc{{ cc }}</span>
     </div>
@@ -28,8 +28,8 @@ const value = defineModel('value', {
     default: 0
 })
 
-// Encoder has 127 units per full revolution
-const DEG_PER_UNIT = 300 / 127
+// Range of movement
+const MOVEMENT_RANGE = 300
 const HOME_POSITION = -150
 
 const root = useTemplateRef('root')
@@ -41,7 +41,7 @@ const { dragStart } = draggable(null, {
             pos[1] - (dims.top + dims.height / 2)
         ]
         const angle = Math.atan2(offset[1], offset[0])
-        value.value = Math.max(0, Math.min(127, mod(angle / Math.PI * 180 - HOME_POSITION + 90, 360) / DEG_PER_UNIT))
+        value.value = Math.max(0, Math.min(1, mod(angle / Math.PI * 180 - HOME_POSITION + 90, 360) / MOVEMENT_RANGE))
     }
 })
 
