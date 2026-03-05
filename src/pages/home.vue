@@ -339,7 +339,7 @@ function toggleMIDIMonitor() {
     showMIDIMonitor.value = !showMIDIMonitor.value
 }
 
-const playbackMode = ref(true)
+const playbackMode = ref(false)
 function togglePlaybackMode() {
     playbackMode.value = !playbackMode.value
 }
